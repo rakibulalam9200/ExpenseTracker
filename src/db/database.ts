@@ -131,7 +131,7 @@ export const deleteExpense = (id: number) => {
 
 export const getExpensesByDateRange = (startDate: string, endDate: string): Expense[] => {
   const result = db.executeSync(
-    'SELECT * FROM expenses WHERE date >= ? AND date <= ? ORDER BY date DESC',
+    'SELECT * FROM expenses WHERE date >= ? AND date <= ? ORDER BY date DESC, id DESC',
     [startDate, endDate],
   );
 
