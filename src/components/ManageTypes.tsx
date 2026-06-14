@@ -1,0 +1,206 @@
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, Alert, Platform } from 'react-native';
+import { Settings, Plus, Pencil, Trash2, X } from 'lucide-react-native';
+import { cn } from '../lib/utils';
+import { useI18n } from '../i18n/I18nContext';
+import { ExpenseType } from '../db/schema';
+
+// Android-safe font that supports Bangla/Bengali script
+const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
+
+interface ManageTypesProps {
+  expenseTypes: ExpenseType[];
+  onAdd: (nameEn: string, nameBn: string) => void;
+  onUpdate: (id: number, nameEn: string, nameBn: string) => void;
+  onDelete: (id: number) => void;
+}
+
+export function ManageTypes({ expenseTypes, onAdd, onUpdate, onDelete }: ManageTypesProps) {
+  const { t } = useI18n();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingType, setEditingType] = useState<ExpenseType | null>(null);
+  const [nameEn, setNameEn] = useState('');
+  const [nameBn, setNameBn] = useState('');
+
+  const handleOpenAdd = () => {
+    setEditingType(null);
+    setNameEn('');
+    setNameBn('');
+    setIsFormOpen(true);
+  };
+
+  const handleOpenEdit = (et: ExpenseType) => {
+    setEditingType(et);
+    setNameEn(et.name_en);
+    setNameBn(et.name_bn);
+    setIsFormOpen(true);
+  };
+
+  const handleSave = () => {
+    if (!nameEn.trim() || !nameBn.trim()) return;
+
+    if (editingType) {
+      onUpdate(editingType.id, nameEn.trim(), nameBn.trim());
+    } else {
+      onAdd(nameEn.trim(), nameBn.trim());
+    }
+    setIsFormOpen(false);
+    setNameEn('');
+    setNameBn('');
+    setEditingType(null);
+  };
+
+  const handleDelete = (et: ExpenseType) => {
+    Alert.alert(
+      t('deleteTypeConfirmTitle'),
+      t('deleteTypeConfirmMessage'),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        { text: t('delete'), style: 'destructive', onPress: () => onDelete(et.id) },
+      ],
+    );
+  };
+
+  return (
+    <>
+      <TouchableOpacity
+        className="flex-row items-center px-4 py-2.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 mb-4"
+        onPress={() => setIsOpen(true)}
+      >
+        <Settings size={16} color="#6366f1" />
+        <Text className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 ml-1.5">
+          {t('manageTypes')}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Types List Modal */}
+      <Modal visible={isOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setIsOpen(false)}>
+        <View className="flex-1 bg-white dark:bg-slate-900">
+          <View className="flex-row justify-between items-center p-5 border-b border-slate-100 dark:border-slate-800">
+            <Text className="text-xl font-bold text-slate-900 dark:text-white">
+              {t('manageTypes')}
+            </Text>
+            <TouchableOpacity onPress={() => setIsOpen(false)} className="p-2 -mr-2">
+              <X color="#94a3b8" size={24} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView className="flex-1 p-5">
+            {expenseTypes.map((et) => (
+              <View
+                key={et.id}
+                className="flex-row items-center justify-between bg-slate-50 dark:bg-slate-800 rounded-xl p-4 mb-3 border border-slate-100 dark:border-slate-700"
+              >
+                <View className="flex-1 mr-3">
+                  <Text className="text-base text-slate-900 dark:text-white" style={{ fontFamily }}>
+                    {et.name_en}
+                  </Text>
+                  <Text className="text-sm text-slate-500 dark:text-slate-400 mt-0.5" style={{ fontFamily }}>
+                    {et.name_bn}
+                  </Text>
+                </View>
+                <View className="flex-row">
+                  <TouchableOpacity
+                    className="p-2 mr-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/30"
+                    onPress={() => handleOpenEdit(et)}
+                  >
+                    <Pencil size={16} color="#6366f1" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="p-2 rounded-lg bg-rose-50 dark:bg-rose-900/30"
+                    onPress={() => handleDelete(et)}
+                  >
+                    <Trash2 size={16} color="#ef4444" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+
+          <View className="p-5 border-t border-slate-100 dark:border-slate-800">
+            <TouchableOpacity
+              className="bg-indigo-600 active:bg-indigo-700 flex-row items-center justify-center py-3.5 rounded-xl"
+              onPress={handleOpenAdd}
+            >
+              <Plus color="white" size={20} />
+              <Text className="text-white font-bold text-base ml-2">{t('addType')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Add/Edit Type Form Modal */}
+      <Modal visible={isFormOpen} transparent animationType="fade" onRequestClose={() => setIsFormOpen(false)}>
+        <TouchableOpacity
+          className="flex-1 bg-black/50 justify-center px-6"
+          activeOpacity={1}
+          onPress={() => setIsFormOpen(false)}
+        >
+          <View
+            className="bg-white dark:bg-slate-900 rounded-2xl p-5"
+            onStartShouldSetResponder={() => true}
+          >
+            <Text className="text-xl font-bold text-slate-900 dark:text-white mb-5">
+              {editingType ? t('editType') : t('addType')}
+            </Text>
+
+            <View className="mb-4">
+              <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                {t('nameEnglish')} *
+              </Text>
+              <TextInput
+                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-base text-slate-900 dark:text-white"
+                placeholder={t('typeNameEnPlaceholder')}
+                placeholderTextColor="#94a3b8"
+                value={nameEn}
+                onChangeText={setNameEn}
+                style={{ fontFamily }}
+              />
+            </View>
+
+            <View className="mb-6">
+              <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                {t('nameBangla')} *
+              </Text>
+              <TextInput
+                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-base text-slate-900 dark:text-white"
+                placeholder={t('typeNameBnPlaceholder')}
+                placeholderTextColor="#94a3b8"
+                value={nameBn}
+                onChangeText={setNameBn}
+                style={{ fontFamily }}
+              />
+            </View>
+
+            <View className="flex-row">
+              <TouchableOpacity
+                className="flex-1 py-3.5 rounded-xl items-center mr-2 bg-slate-100 dark:bg-slate-800"
+                onPress={() => setIsFormOpen(false)}
+              >
+                <Text className="font-bold text-slate-700 dark:text-slate-300">{t('cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={cn(
+                  "flex-1 py-3.5 rounded-xl items-center ml-2",
+                  nameEn.trim() && nameBn.trim()
+                    ? "bg-indigo-600 active:bg-indigo-700"
+                    : "bg-indigo-300 dark:bg-indigo-900/50",
+                )}
+                disabled={!nameEn.trim() || !nameBn.trim()}
+                onPress={handleSave}
+              >
+                <Text className={cn(
+                  "font-bold",
+                  nameEn.trim() && nameBn.trim() ? "text-white" : "text-indigo-100 dark:text-indigo-400/50",
+                )}>
+                  {t('save')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </>
+  );
+}

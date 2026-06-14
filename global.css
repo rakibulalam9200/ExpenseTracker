@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure all text uses sans-serif (system font) which supports Bengali script */
+@layer base {
+  * {
+    font-family: sans-serif;
+  }
+}
