@@ -33,6 +33,7 @@ import { ExpenseChart } from './src/components/ExpenseChart';
 import { DateFilter } from './src/components/DateFilter';
 import { ManageTypes } from './src/components/ManageTypes';
 import { SkeletonLoader } from './src/components/SkeletonLoader';
+import { BackupRestore } from './src/components/BackupRestore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { I18nProvider, useI18n } from './src/i18n/I18nContext';
 
@@ -197,6 +198,8 @@ function AppContent() {
         />
       </View>
       {chartData.length > 0 && <ExpenseChart data={chartData} expenseTypes={expenseTypes} />}
+
+      <BackupRestore onRestoreComplete={() => { loadTypes(); loadData(); }} />
 
       <Text className="text-xl font-bold text-slate-800 dark:text-white mt-4 mb-2" style={{ fontFamily }}>
         {t('recentExpenses')}

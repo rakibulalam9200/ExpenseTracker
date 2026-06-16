@@ -19,6 +19,20 @@ const DEFAULT_EXPENSE_TYPES: Omit<ExpenseType, 'id'>[] = [
   { name_en: 'Other', name_bn: 'অন্যান্য' },
 ];
 
+export const seedDefaultTypes = () => {
+  const countResult = db.executeSync('SELECT COUNT(*) as count FROM expense_types');
+  const count = (countResult.rows as any[])[0]?.count ?? 0;
+  if (count === 0) {
+    for (const t of DEFAULT_EXPENSE_TYPES) {
+      db.executeSync(
+        'INSERT INTO expense_types (name_en, name_bn) VALUES (?, ?)',
+        [encodeURIComponent(t.name_en), encodeURIComponent(t.name_bn)],
+      );
+    }
+  }
+};
+
+
 export const initDB = () => {
   db.executeSync(`
     CREATE TABLE IF NOT EXISTS expenses (
@@ -40,23 +54,14 @@ export const initDB = () => {
   `);
 
   // Seed default types if table is empty
-  const countResult = db.executeSync('SELECT COUNT(*) as count FROM expense_types');
-  const count = (countResult.rows as any[])[0]?.count ?? 0;
-  if (count === 0) {
-    for (const t of DEFAULT_EXPENSE_TYPES) {
-      db.executeSync(
-        'INSERT INTO expense_types (name_en, name_bn) VALUES (?, ?)',
-        [encodeURIComponent(t.name_en), encodeURIComponent(t.name_bn)],
-      );
-    }
-  } else {
-    // Auto-repair existing corrupted default types from before the encode fix
-    for (const t of DEFAULT_EXPENSE_TYPES) {
-      db.executeSync(
-        'UPDATE expense_types SET name_en = ?, name_bn = ? WHERE name_en = ? OR name_en = ?',
-        [encodeURIComponent(t.name_en), encodeURIComponent(t.name_bn), t.name_en, encodeURIComponent(t.name_en)]
-      );
-    }
+  seedDefaultTypes();
+  
+  // Auto-repair existing corrupted default types from before the encode fix
+  for (const t of DEFAULT_EXPENSE_TYPES) {
+    db.executeSync(
+      'UPDATE expense_types SET name_en = ?, name_bn = ? WHERE name_en = ? OR name_en = ?',
+      [encodeURIComponent(t.name_en), encodeURIComponent(t.name_bn), t.name_en, encodeURIComponent(t.name_en)]
+    );
   }
 };
 
@@ -172,4 +177,46 @@ export const getExpensesByCategoryForCurrentMonth = () => {
   const start = format(startOfMonth(now), 'yyyy-MM-dd');
   const end = format(endOfMonth(now), 'yyyy-MM-dd');
   return getExpensesByCategoryForDateRange(start, end);
+};
+
+export const getAllExpenses = (): Expense[] => {
+  const result = db.executeSync('SELECT * FROM expenses ORDER BY id ASC');
+  const rows = (result.rows as unknown as Expense[]) || [];
+
+  return rows.map(row => {
+    try {
+      return {
+        ...row,
+        title: row.title ? decodeURIComponent(row.title) : row.title,
+        description: row.description ? decodeURIComponent(row.description) : row.description,
+      };
+    } catch (e) {
+      return row;
+    }
+  });
+};
+
+export const clearAllData = () => {
+  db.executeSync('DELETE FROM expenses');
+  db.executeSync('DELETE FROM expense_types');
+};
+
+export const importExpensesBatch = (expenses: Expense[]) => {
+  for (const exp of expenses) {
+    const safeTitle = encodeURIComponent(exp.title);
+    const safeDesc = exp.description ? encodeURIComponent(exp.description) : null;
+    db.executeSync(
+      'INSERT INTO expenses (id, title, amount, date, type, description) VALUES (?, ?, ?, ?, ?, ?)',
+      [exp.id, safeTitle, exp.amount, exp.date, exp.type, safeDesc]
+    );
+  }
+};
+
+export const importExpenseTypesBatch = (types: ExpenseType[]) => {
+  for (const type of types) {
+    db.executeSync(
+      'INSERT INTO expense_types (id, name_en, name_bn) VALUES (?, ?, ?)',
+      [type.id, encodeURIComponent(type.name_en), encodeURIComponent(type.name_bn)]
+    );
+  }
 };
