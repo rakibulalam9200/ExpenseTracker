@@ -32,6 +32,7 @@ import { ExpenseForm } from './src/components/ExpenseForm';
 import { ExpenseChart } from './src/components/ExpenseChart';
 import { DateFilter } from './src/components/DateFilter';
 import { ManageTypes } from './src/components/ManageTypes';
+import { SkeletonLoader } from './src/components/SkeletonLoader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { I18nProvider, useI18n } from './src/i18n/I18nContext';
 
@@ -178,7 +179,7 @@ function AppContent() {
         expenseTypes={expenseTypes}
       />
 
-      <View className="flex-row flex-wrap items-center">
+      <View className='flex-row justify-between items-center'>
         <DateFilter
           startDate={filterStart}
           endDate={filterEnd}
@@ -186,15 +187,15 @@ function AppContent() {
           onClear={handleClearFilter}
           isFiltered={isFiltered}
         />
+
+
+        <ManageTypes
+          expenseTypes={expenseTypes}
+          onAdd={handleAddType}
+          onUpdate={handleUpdateType}
+          onDelete={handleDeleteType}
+        />
       </View>
-
-      <ManageTypes
-        expenseTypes={expenseTypes}
-        onAdd={handleAddType}
-        onUpdate={handleUpdateType}
-        onDelete={handleDeleteType}
-      />
-
       {chartData.length > 0 && <ExpenseChart data={chartData} expenseTypes={expenseTypes} />}
 
       <Text className="text-xl font-bold text-slate-800 dark:text-white mt-4 mb-2" style={{ fontFamily }}>
@@ -248,9 +249,7 @@ function AppContent() {
       {/* Main Content Area */}
       <View className="flex-1 px-4 pt-6">
         {!isDBReady ? (
-          <View className="flex-1 items-center justify-center">
-            <Text className="text-slate-500 dark:text-slate-400">{t('loadingDB')}</Text>
-          </View>
+          <SkeletonLoader />
         ) : (
           <FlatList
             data={expenses}

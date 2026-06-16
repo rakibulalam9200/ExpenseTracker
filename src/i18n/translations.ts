@@ -13,6 +13,7 @@ export const translations = {
     noExpenses: 'No expenses added yet.',
     noChartData: 'No expenses to chart.',
     expenseBreakdown: 'Expense Breakdown',
+    report: 'Report',
     total: 'Total',
     loadingDB: 'Loading Database...',
     amount: 'Amount',
@@ -50,6 +51,10 @@ export const translations = {
     deleteTypeConfirmMessage: 'Are you sure you want to delete this expense type?',
     typeNameEnPlaceholder: 'e.g. Food',
     typeNameBnPlaceholder: 'e.g. খাবার',
+    downloadPdf: 'Download PDF',
+    sharePdf: 'Share',
+    pdfSaved: 'PDF saved to Downloads folder.',
+    close: 'Close',
   },
   bn: {
     appName: 'খরচ ট্র্যাকার',
@@ -63,6 +68,7 @@ export const translations = {
     noExpenses: 'এখনো কোনো খরচ যোগ করা হয়নি।',
     noChartData: 'চার্টে দেখানোর মতো কোনো খরচ নেই।',
     expenseBreakdown: 'খরচের বিশ্লেষণ',
+    report: 'রিপোর্ট',
     total: 'মোট',
     loadingDB: 'ডাটাবেস লোড হচ্ছে...',
     amount: 'পরিমাণ',
@@ -100,6 +106,10 @@ export const translations = {
     deleteTypeConfirmMessage: 'আপনি কি এই খরচের ধরনটি মুছে ফেলতে চান?',
     typeNameEnPlaceholder: 'যেমন: Food',
     typeNameBnPlaceholder: 'যেমন: খাবার',
+    downloadPdf: 'ডাউনলোড করুন',
+    sharePdf: 'শেয়ার করুন',
+    pdfSaved: 'পিডিএফ ডাউনলোড ফোল্ডারে সংরক্ষিত হয়েছে।',
+    close: 'বন্ধ করুন',
   },
 } as const;
 

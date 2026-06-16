@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react';
-import { View, Text, useColorScheme, Platform } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, useColorScheme, Platform, TouchableOpacity } from 'react-native';
 
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
 import { PieChart } from 'react-native-gifted-charts';
 import { useI18n } from '../i18n/I18nContext';
 import { ExpenseType } from '../db/schema';
+import { ReportModal } from './ReportModal';
 
 interface ExpenseChartProps {
   data: { type: string; total: number }[];
@@ -25,6 +26,7 @@ const COLORS = [
 export function ExpenseChart({ data, expenseTypes }: ExpenseChartProps) {
   const isDark = useColorScheme() === 'dark';
   const { lang, t } = useI18n();
+  const [reportVisible, setReportVisible] = useState(false);
 
   const resolveTypeLabel = (typeId: string): string => {
     const found = expenseTypes.find(et => et.id.toString() === typeId);
@@ -56,12 +58,23 @@ export function ExpenseChart({ data, expenseTypes }: ExpenseChartProps) {
 
   return (
     <View className="bg-white dark:bg-slate-800 rounded-3xl p-6 items-center border border-slate-100 dark:border-slate-700 my-4 shadow-sm">
-      <Text className="text-lg font-bold text-slate-800 dark:text-white mb-6 self-start">
-        {t('expenseBreakdown')}
-      </Text>
+      <View className='flex-row justify-between w-full items-center'>
+        <Text className="text-lg font-bold text-slate-800 dark:text-white mb-6 self-start">
+          {t('expenseBreakdown')}
+        </Text>
+        <TouchableOpacity onPress={() => setReportVisible(true)}>
+          <Text className="text-lg font-bold text-indigo-600  mb-6 self-end">
+            {t('report')}
+          </Text>
+        </TouchableOpacity>
+
+      </View>
+
 
       <PieChart
         data={chartData}
+        isAnimated
+        animationDuration={1000}
         donut
         radius={110}
         innerRadius={70}
@@ -99,6 +112,13 @@ export function ExpenseChart({ data, expenseTypes }: ExpenseChartProps) {
           </View>
         ))}
       </View>
+      
+      <ReportModal 
+        visible={reportVisible} 
+        onClose={() => setReportVisible(false)} 
+        chartData={chartData} 
+        totalExpense={totalExpense} 
+      />
     </View>
   );
 }
