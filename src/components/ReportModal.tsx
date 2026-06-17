@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import Share from 'react-native-share';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { useI18n } from '../i18n/I18nContext';
 import { PieChart } from 'react-native-gifted-charts';
+import { ExpenseType, ExpenseSubType } from '../db/schema';
 
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
 
@@ -23,30 +24,84 @@ interface ReportModalProps {
   onClose: () => void;
   chartData: any[];
   totalExpense: number;
+  subTypeData: { type: string; sub_type: string | null; total: number }[];
+  expenseTypes: ExpenseType[];
+  expenseSubTypes: ExpenseSubType[];
 }
 
-export function ReportModal({ visible, onClose, chartData, totalExpense }: ReportModalProps) {
+export function ReportModal({ visible, onClose, chartData, totalExpense, subTypeData, expenseTypes, expenseSubTypes }: ReportModalProps) {
   const isDark = useColorScheme() === 'dark';
-  const { t } = useI18n();
+  const { lang, t } = useI18n();
   const viewShotRef = useRef<any>(null);
+
+  // Build a lookup: typeId -> list of { subTypeName, total }
+  const subTypeBreakdown = useMemo(() => {
+    const map: Record<string, { name: string; total: number }[]> = {};
+
+    for (const row of subTypeData) {
+      if (!row.sub_type) continue; // skip expenses without sub-type
+
+      const st = expenseSubTypes.find(s => s.id.toString() === row.sub_type);
+      const name = st
+        ? (lang === 'bn' ? st.name_bn : st.name_en)
+        : row.sub_type;
+
+      if (!map[row.type]) {
+        map[row.type] = [];
+      }
+      map[row.type].push({ name, total: row.total });
+    }
+
+    return map;
+  }, [subTypeData, expenseSubTypes, lang]);
+
+  // Also match chart type IDs — chartData uses resolved names, but we need type IDs
+  // chartData items have: { value, text, color, focused }
+  // We need to map text back to type ID to get sub-types
+  const typeIdByLabel = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const et of expenseTypes) {
+      const label = lang === 'bn' ? et.name_bn : et.name_en;
+      map[label] = et.id.toString();
+    }
+    return map;
+  }, [expenseTypes, lang]);
 
   const generateHTML = (base64Image: string) => {
     const tableRows = chartData
-      .map(
-        (item) => `
-      <tr>
-        <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; color: #1e293b; font-weight: 500;">
-          <div style="display: flex; align-items: center;">
-            <div style="width: 12px; height: 12px; border-radius: 6px; background-color: ${item.color}; margin-right: 8px;"></div>
-            ${item.text}
-          </div>
-        </td>
-        <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #1e293b; font-weight: 700;">
-          &#2547;${item.value.toFixed(2)}
-        </td>
-      </tr>
-    `
-      )
+      .map((item) => {
+        const typeId = typeIdByLabel[item.text];
+        const subItems = typeId ? (subTypeBreakdown[typeId] || []) : [];
+
+        const mainRow = `
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; color: #1e293b; font-weight: 500;">
+            <div style="display: flex; align-items: center;">
+              <div style="width: 12px; height: 12px; border-radius: 6px; background-color: ${item.color}; margin-right: 8px;"></div>
+              ${item.text}
+            </div>
+          </td>
+          <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #1e293b; font-weight: 700;">
+            &#2547;${item.value.toFixed(2)}
+          </td>
+        </tr>`;
+
+        const subRows = subItems
+          .map(
+            (sub) => `
+        <tr>
+          <td style="padding: 8px 12px 8px 40px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-weight: 400; font-size: 14px;">
+            ${sub.name}
+          </td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #f1f5f9; text-align: right; color: #64748b; font-weight: 600; font-size: 14px;">
+            &#2547;${sub.total.toFixed(2)}
+          </td>
+        </tr>`
+          )
+          .join('');
+
+        return mainRow + subRows;
+      })
       .join('');
 
     return `
@@ -202,24 +257,50 @@ export function ReportModal({ visible, onClose, chartData, totalExpense }: Repor
             </View>
           </ViewShot>
 
-          {/* Breakdown List */}
+          {/* Breakdown List with Sub-Type Details */}
           <View className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-slate-700">
-            {chartData.map((item) => (
-              <View key={item.text} className="flex-row justify-between items-center py-3 border-b border-slate-50 dark:border-slate-700/50 last:border-0">
-                <View className="flex-row items-center flex-1">
-                  <View
-                    style={{ backgroundColor: item.color }}
-                    className="w-3 h-3 rounded-full mr-3"
-                  />
-                  <Text className="text-base text-slate-700 dark:text-slate-300" style={{ fontFamily, fontWeight: '500' }}>
-                    {item.text}
-                  </Text>
+            {chartData.map((item) => {
+              const typeId = typeIdByLabel[item.text];
+              const subItems = typeId ? (subTypeBreakdown[typeId] || []) : [];
+
+              return (
+                <View key={item.text}>
+                  {/* Main type row */}
+                  <View className="flex-row justify-between items-center py-3 border-b border-slate-50 dark:border-slate-700/50">
+                    <View className="flex-row items-center flex-1">
+                      <View
+                        style={{ backgroundColor: item.color }}
+                        className="w-3 h-3 rounded-full mr-3"
+                      />
+                      <Text className="text-base text-slate-700 dark:text-slate-300" style={{ fontFamily, fontWeight: '500' }}>
+                        {item.text}
+                      </Text>
+                    </View>
+                    <Text className="text-base font-bold text-slate-800 dark:text-white">
+                      ৳{item.value.toFixed(2)}
+                    </Text>
+                  </View>
+
+                  {/* Sub-type rows — indented */}
+                  {subItems.map((sub, idx) => (
+                    <View
+                      key={`${item.text}-sub-${idx}`}
+                      className="flex-row justify-between items-center py-2 ml-6 border-b border-slate-50/50 dark:border-slate-700/30"
+                    >
+                      <View className="flex-row items-center flex-1">
+                        <View className="w-2 h-2 rounded-full mr-2 bg-slate-300 dark:bg-slate-600" />
+                        <Text className="text-sm text-slate-500 dark:text-slate-400" style={{ fontFamily }}>
+                          {sub.name}
+                        </Text>
+                      </View>
+                      <Text className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+                        ৳{sub.total.toFixed(2)}
+                      </Text>
+                    </View>
+                  ))}
                 </View>
-                <Text className="text-base font-bold text-slate-800 dark:text-white">
-                  ৳{item.value.toFixed(2)}
-                </Text>
-              </View>
-            ))}
+              );
+            })}
 
             <View className="flex-row justify-between items-center pt-4 mt-2 border-t border-slate-200 dark:border-slate-600">
               <Text className="text-lg font-bold text-slate-800 dark:text-white">

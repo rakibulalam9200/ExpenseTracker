@@ -1,24 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, Platform } from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import { format, parseISO } from 'date-fns';
 import { Plus, X, Calendar as CalendarIcon, ChevronDown } from 'lucide-react-native';
 import { cn } from '../lib/utils';
 import { useI18n } from '../i18n/I18nContext';
-import { Expense, ExpenseType } from '../db/schema';
+import { Expense, ExpenseType, ExpenseSubType } from '../db/schema';
 
 // Android-safe font that supports Bangla/Bengali script
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
 
 interface ExpenseFormProps {
-  onSubmit: (expense: { title: string; amount: number; date: string; type: string; description?: string }) => void;
+  onSubmit: (expense: { title: string; amount: number; date: string; type: string; sub_type?: string; description?: string }) => void;
   onUpdate?: (expense: Expense) => void;
   editingExpense?: Expense | null;
   onCancelEdit?: () => void;
   expenseTypes: ExpenseType[];
+  expenseSubTypes: ExpenseSubType[];
 }
 
-export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, expenseTypes }: ExpenseFormProps) {
+export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, expenseTypes, expenseSubTypes }: ExpenseFormProps) {
   const { lang, t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -28,12 +29,20 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
   const [type, setType] = useState(defaultTypeId);
+  const [subType, setSubType] = useState<string>('');
   const [description, setDescription] = useState('');
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTypePicker, setShowTypePicker] = useState(false);
+  const [showSubTypePicker, setShowSubTypePicker] = useState(false);
 
   const isEditing = !!editingExpense;
+
+  // Get sub-types available for the currently selected type
+  const availableSubTypes = useMemo(() => {
+    if (!type) return [];
+    return expenseSubTypes.filter(st => st.expense_type_id.toString() === type);
+  }, [type, expenseSubTypes]);
 
   // Populate form when editing
   useEffect(() => {
@@ -42,6 +51,7 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
       setAmount(editingExpense.amount.toString());
       setDate(parseISO(editingExpense.date));
       setType(editingExpense.type);
+      setSubType(editingExpense.sub_type || '');
       setDescription(editingExpense.description || '');
       setIsOpen(true);
     }
@@ -54,11 +64,19 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
     }
   }, [expenseTypes, isEditing, type]);
 
+  // Reset sub-type when type changes (only during new entry, not editing)
+  useEffect(() => {
+    if (!isEditing) {
+      setSubType('');
+    }
+  }, [type, isEditing]);
+
   const resetForm = () => {
     setTitle('');
     setAmount('');
     setDate(new Date());
     setType(expenseTypes.length > 0 ? expenseTypes[0].id.toString() : '');
+    setSubType('');
     setDescription('');
   };
 
@@ -75,7 +93,7 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
       return;
     }
 
-    console.log(title, amount, type, description, "type")
+    console.log(title, amount, type, subType, description, "type");
 
     if (isEditing && onUpdate && editingExpense) {
       onUpdate({
@@ -84,6 +102,7 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
         amount: parseFloat(amount),
         date: date.toISOString(),
         type,
+        sub_type: subType || undefined,
         description: description.trim() || undefined,
       });
     } else {
@@ -92,6 +111,7 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
         amount: parseFloat(amount),
         date: date.toISOString(),
         type,
+        sub_type: subType || undefined,
         description: description.trim() || undefined,
       });
     }
@@ -104,6 +124,12 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
   const selectedTypeLabel = selectedType
     ? (lang === 'bn' ? selectedType.name_bn : selectedType.name_en)
     : type;
+
+  // Resolve selected sub-type label
+  const selectedSubType = expenseSubTypes.find(st => st.id.toString() === subType);
+  const selectedSubTypeLabel = selectedSubType
+    ? (lang === 'bn' ? selectedSubType.name_bn : selectedSubType.name_en)
+    : '';
 
   return (
     <>
@@ -186,6 +212,33 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
               </View>
             </View>
 
+            {/* Sub-Type Picker — only shows when selected type has sub-types */}
+            {availableSubTypes.length > 0 && (
+              <View className="mb-5">
+                <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  {t('subType')}
+                </Text>
+                <TouchableOpacity
+                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 flex-row items-center justify-between"
+                  onPress={() => setShowSubTypePicker(true)}
+                >
+                  <Text
+                    className={cn(
+                      "text-base",
+                      selectedSubTypeLabel
+                        ? "text-slate-900 dark:text-white"
+                        : "text-slate-400 dark:text-slate-500"
+                    )}
+                    numberOfLines={1}
+                    style={{ fontFamily }}
+                  >
+                    {selectedSubTypeLabel || t('selectSubType')}
+                  </Text>
+                  <ChevronDown size={18} color="#94a3b8" />
+                </TouchableOpacity>
+              </View>
+            )}
+
             <View className="mb-8">
               <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 {t('descriptionOptional')}
@@ -259,6 +312,78 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
                     onPress={() => {
                       setType(et.id.toString());
                       setShowTypePicker(false);
+                    }}
+                  >
+                    <Text
+                      className={cn(
+                        "text-lg",
+                        isSelected ? "text-indigo-700 dark:text-indigo-400 font-bold" : "text-slate-700 dark:text-slate-300"
+                      )}
+                      style={{ fontFamily }}
+                    >
+                      {label}
+                    </Text>
+                    <Text className="text-xs text-slate-400 dark:text-slate-500 mt-0.5" style={{ fontFamily }}>
+                      {secondaryLabel}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Sub-Type Picker Modal */}
+      <Modal visible={showSubTypePicker} transparent animationType="fade" onRequestClose={() => setShowSubTypePicker(false)}>
+        <TouchableOpacity
+          className="flex-1 bg-black/50 justify-end"
+          activeOpacity={1}
+          onPress={() => setShowSubTypePicker(false)}
+        >
+          <View className="bg-white dark:bg-slate-900 rounded-t-3xl p-5 pb-8 max-h-[70%]">
+            <View className="items-center mb-4">
+              <View className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mb-4" />
+              <Text className="text-xl font-bold text-slate-900 dark:text-white">{t('selectSubType')}</Text>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* "None" option to clear sub-type */}
+              <TouchableOpacity
+                className={cn(
+                  "py-4 px-5 rounded-xl mb-2",
+                  !subType ? "bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800" : ""
+                )}
+                onPress={() => {
+                  setSubType('');
+                  setShowSubTypePicker(false);
+                }}
+              >
+                <Text
+                  className={cn(
+                    "text-lg",
+                    !subType ? "text-indigo-700 dark:text-indigo-400 font-bold" : "text-slate-500 dark:text-slate-400"
+                  )}
+                  style={{ fontFamily }}
+                >
+                  —
+                </Text>
+              </TouchableOpacity>
+
+              {availableSubTypes.map((st) => {
+                const isSelected = subType === st.id.toString();
+                const label = lang === 'bn' ? st.name_bn : st.name_en;
+                const secondaryLabel = lang === 'bn' ? st.name_en : st.name_bn;
+
+                return (
+                  <TouchableOpacity
+                    key={st.id}
+                    className={cn(
+                      "py-4 px-5 rounded-xl mb-2",
+                      isSelected ? "bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800" : ""
+                    )}
+                    onPress={() => {
+                      setSubType(st.id.toString());
+                      setShowSubTypePicker(false);
                     }}
                   >
                     <Text

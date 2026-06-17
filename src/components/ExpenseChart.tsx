@@ -4,12 +4,14 @@ import { View, Text, useColorScheme, Platform, TouchableOpacity } from 'react-na
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
 import { PieChart } from 'react-native-gifted-charts';
 import { useI18n } from '../i18n/I18nContext';
-import { ExpenseType } from '../db/schema';
+import { ExpenseType, ExpenseSubType } from '../db/schema';
 import { ReportModal } from './ReportModal';
 
 interface ExpenseChartProps {
   data: { type: string; total: number }[];
+  subTypeData: { type: string; sub_type: string | null; total: number }[];
   expenseTypes: ExpenseType[];
+  expenseSubTypes: ExpenseSubType[];
 }
 
 const COLORS = [
@@ -23,7 +25,7 @@ const COLORS = [
   '#64748b', // slate-500
 ];
 
-export function ExpenseChart({ data, expenseTypes }: ExpenseChartProps) {
+export function ExpenseChart({ data, subTypeData, expenseTypes, expenseSubTypes }: ExpenseChartProps) {
   const isDark = useColorScheme() === 'dark';
   const { lang, t } = useI18n();
   const [reportVisible, setReportVisible] = useState(false);
@@ -117,7 +119,10 @@ export function ExpenseChart({ data, expenseTypes }: ExpenseChartProps) {
         visible={reportVisible} 
         onClose={() => setReportVisible(false)} 
         chartData={chartData} 
-        totalExpense={totalExpense} 
+        totalExpense={totalExpense}
+        subTypeData={subTypeData}
+        expenseTypes={expenseTypes}
+        expenseSubTypes={expenseSubTypes}
       />
     </View>
   );

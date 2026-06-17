@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Alert, Platform, StyleSheet } from 'react-native';
-import { Expense, ExpenseType } from '../db/schema';
+import { Expense, ExpenseType, ExpenseSubType } from '../db/schema';
 import { cn } from '../lib/utils';
 import { format, parseISO } from 'date-fns';
 import { Tag, Calendar, AlignLeft, Pencil, Trash2 } from 'lucide-react-native';
@@ -9,6 +9,7 @@ import { useI18n } from '../i18n/I18nContext';
 interface ExpenseCardProps {
   expense: Expense;
   expenseTypes: ExpenseType[];
+  expenseSubTypes: ExpenseSubType[];
   onEdit: (expense: Expense) => void;
   onDelete: (id: number) => void;
   className?: string;
@@ -17,7 +18,7 @@ interface ExpenseCardProps {
 // Android-safe font that supports Bangla/Bengali script
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
 
-export function ExpenseCard({ expense, expenseTypes, onEdit, onDelete, className }: ExpenseCardProps) {
+export function ExpenseCard({ expense, expenseTypes, expenseSubTypes, onEdit, onDelete, className }: ExpenseCardProps) {
   const { lang, t } = useI18n();
 
   const handleDelete = () => {
@@ -36,6 +37,14 @@ export function ExpenseCard({ expense, expenseTypes, onEdit, onDelete, className
   const typeLabel = typeRecord
     ? (lang === 'bn' ? typeRecord.name_bn : typeRecord.name_en)
     : expense.type;
+
+  // Resolve sub-type label
+  const subTypeRecord = expense.sub_type
+    ? expenseSubTypes.find(st => st.id.toString() === expense.sub_type)
+    : null;
+  const subTypeLabel = subTypeRecord
+    ? (lang === 'bn' ? subTypeRecord.name_bn : subTypeRecord.name_en)
+    : null;
 
   return (
     <View className={cn("bg-white dark:bg-slate-800 rounded-2xl p-4 mb-4 shadow-sm border border-slate-100 dark:border-slate-700", className)}>
@@ -62,6 +71,7 @@ export function ExpenseCard({ expense, expenseTypes, onEdit, onDelete, className
           style={{ fontFamily, fontWeight: '500' }}
         >
           {typeLabel}
+          {subTypeLabel ? ` → ${subTypeLabel}` : ''}
         </Text>
       </View>
 

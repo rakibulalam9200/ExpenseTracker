@@ -68,6 +68,18 @@ export const translations = {
     restoreFailed: 'Restore failed or was cancelled.',
     noBackupSelected: 'No backup file selected.',
     invalidBackupFile: 'Invalid backup file.',
+    // Sub-expense types
+    subType: 'Sub Type',
+    subTypes: 'Sub Types',
+    manageSubTypes: 'Manage Sub Types',
+    addSubType: 'Add Sub Type',
+    editSubType: 'Edit Sub Type',
+    deleteSubTypeConfirmTitle: 'Delete Sub Type',
+    deleteSubTypeConfirmMessage: 'Are you sure you want to delete this sub type?',
+    selectSubType: 'Select Sub Type',
+    noSubTypes: 'No sub types added.',
+    subTypeNameEnPlaceholder: 'e.g. Meat',
+    subTypeNameBnPlaceholder: 'e.g. মাংস',
   },
   bn: {
     appName: 'খরচ ট্র্যাকার',
@@ -136,6 +148,18 @@ export const translations = {
     restoreFailed: 'পুনরুদ্ধার ব্যর্থ হয়েছে বা বাতিল করা হয়েছে।',
     noBackupSelected: 'কোনো ব্যাকআপ ফাইল নির্বাচন করা হয়নি।',
     invalidBackupFile: 'অবৈধ ব্যাকআপ ফাইল।',
+    // Sub-expense types
+    subType: 'উপ ধরন',
+    subTypes: 'উপ ধরনসমূহ',
+    manageSubTypes: 'উপ ধরন পরিচালনা',
+    addSubType: 'উপ ধরন যোগ করুন',
+    editSubType: 'উপ ধরন সম্পাদনা',
+    deleteSubTypeConfirmTitle: 'উপ ধরন মুছুন',
+    deleteSubTypeConfirmMessage: 'আপনি কি এই উপ ধরনটি মুছে ফেলতে চান?',
+    selectSubType: 'উপ ধরন নির্বাচন করুন',
+    noSubTypes: 'কোনো উপ ধরন যোগ করা হয়নি।',
+    subTypeNameEnPlaceholder: 'যেমন: Meat',
+    subTypeNameBnPlaceholder: 'যেমন: মাংস',
   },
 } as const;
 

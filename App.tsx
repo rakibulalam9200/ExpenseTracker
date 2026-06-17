@@ -21,12 +21,17 @@ import {
   deleteExpense as deleteExpenseDB,
   getExpensesByDateRange,
   getExpensesByCategoryForDateRange,
+  getExpensesBySubTypeForDateRange,
   getAllExpenseTypes,
   addExpenseType,
   updateExpenseType,
   deleteExpenseType,
+  getAllExpenseSubTypes,
+  addExpenseSubType,
+  updateExpenseSubType,
+  deleteExpenseSubType,
 } from './src/db/database';
-import { Expense, ExpenseType } from './src/db/schema';
+import { Expense, ExpenseType, ExpenseSubType } from './src/db/schema';
 import { ExpenseCard } from './src/components/ExpenseCard';
 import { ExpenseForm } from './src/components/ExpenseForm';
 import { ExpenseChart } from './src/components/ExpenseChart';
@@ -50,9 +55,11 @@ function AppContent() {
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [chartData, setChartData] = useState<{ type: string; total: number }[]>([]);
+  const [subTypeChartData, setSubTypeChartData] = useState<{ type: string; sub_type: string | null; total: number }[]>([]);
   const [isDBReady, setIsDBReady] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [expenseTypes, setExpenseTypes] = useState<ExpenseType[]>([]);
+  const [expenseSubTypes, setExpenseSubTypes] = useState<ExpenseSubType[]>([]);
 
   // Date filter state
   const now = new Date();
@@ -69,17 +76,29 @@ function AppContent() {
     }
   }, []);
 
+  const loadSubTypes = useCallback(() => {
+    try {
+      const subTypes = getAllExpenseSubTypes();
+      setExpenseSubTypes(subTypes);
+    } catch (e) {
+      console.error('Failed to load sub-types', e);
+    }
+  }, []);
+
   const loadData = useCallback(() => {
     try {
       const start = format(filterStart, 'yyyy-MM-dd');
       const end = format(filterEnd, 'yyyy-MM-dd');
 
       const currentExpenses = getExpensesByDateRange(start, end);
-      console.log(currentExpenses, "current expenses")
+      console.log(currentExpenses, "current expenses");
       setExpenses(currentExpenses);
 
       const categoryTotals = getExpensesByCategoryForDateRange(start, end);
       setChartData(categoryTotals);
+
+      const subTypeTotals = getExpensesBySubTypeForDateRange(start, end);
+      setSubTypeChartData(subTypeTotals);
     } catch (e) {
       console.error('Failed to load data', e);
     }
@@ -90,11 +109,12 @@ function AppContent() {
       initDB();
       setIsDBReady(true);
       loadTypes();
+      loadSubTypes();
       loadData();
     } catch (e) {
       console.error('Failed to init DB', e);
     }
-  }, [loadData, loadTypes]);
+  }, [loadData, loadTypes, loadSubTypes]);
 
   // ─── Expense Handlers ────────────────────────────────────────────
 
@@ -150,8 +170,38 @@ function AppContent() {
     try {
       deleteExpenseType(id);
       loadTypes();
+      loadSubTypes(); // sub-types are cascade-deleted
     } catch (e) {
       console.error('Failed to delete type', e);
+    }
+  };
+
+  // ─── Sub-Type Handlers ───────────────────────────────────────────
+
+  const handleAddSubType = (expenseTypeId: number, nameEn: string, nameBn: string) => {
+    try {
+      addExpenseSubType(expenseTypeId, nameEn, nameBn);
+      loadSubTypes();
+    } catch (e) {
+      console.error('Failed to add sub-type', e);
+    }
+  };
+
+  const handleUpdateSubType = (id: number, nameEn: string, nameBn: string) => {
+    try {
+      updateExpenseSubType(id, nameEn, nameBn);
+      loadSubTypes();
+    } catch (e) {
+      console.error('Failed to update sub-type', e);
+    }
+  };
+
+  const handleDeleteSubType = (id: number) => {
+    try {
+      deleteExpenseSubType(id);
+      loadSubTypes();
+    } catch (e) {
+      console.error('Failed to delete sub-type', e);
     }
   };
 
@@ -178,6 +228,7 @@ function AppContent() {
         editingExpense={editingExpense}
         onCancelEdit={() => setEditingExpense(null)}
         expenseTypes={expenseTypes}
+        expenseSubTypes={expenseSubTypes}
       />
 
       <View className='flex-row justify-between items-center'>
@@ -192,14 +243,25 @@ function AppContent() {
 
         <ManageTypes
           expenseTypes={expenseTypes}
+          expenseSubTypes={expenseSubTypes}
           onAdd={handleAddType}
           onUpdate={handleUpdateType}
           onDelete={handleDeleteType}
+          onAddSubType={handleAddSubType}
+          onUpdateSubType={handleUpdateSubType}
+          onDeleteSubType={handleDeleteSubType}
         />
       </View>
-      {chartData.length > 0 && <ExpenseChart data={chartData} expenseTypes={expenseTypes} />}
+      {chartData.length > 0 && (
+        <ExpenseChart
+          data={chartData}
+          subTypeData={subTypeChartData}
+          expenseTypes={expenseTypes}
+          expenseSubTypes={expenseSubTypes}
+        />
+      )}
 
-      <BackupRestore onRestoreComplete={() => { loadTypes(); loadData(); }} />
+      <BackupRestore onRestoreComplete={() => { loadTypes(); loadSubTypes(); loadData(); }} />
 
       <Text className="text-xl font-bold text-slate-800 dark:text-white mt-4 mb-2" style={{ fontFamily }}>
         {t('recentExpenses')}
@@ -261,6 +323,7 @@ function AppContent() {
               <ExpenseCard
                 expense={item}
                 expenseTypes={expenseTypes}
+                expenseSubTypes={expenseSubTypes}
                 onEdit={setEditingExpense}
                 onDelete={handleDeleteExpense}
               />

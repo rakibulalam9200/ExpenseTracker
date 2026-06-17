@@ -4,9 +4,11 @@ import { pick, types } from '@react-native-documents/picker';
 import {
   getAllExpenses,
   getAllExpenseTypes,
+  getAllExpenseSubTypes,
   clearAllData,
   importExpensesBatch,
   importExpenseTypesBatch,
+  importExpenseSubTypesBatch,
   seedDefaultTypes
 } from './database';
 
@@ -14,12 +16,14 @@ export const exportData = async (): Promise<string | null> => {
   try {
     const expenses = getAllExpenses();
     const expenseTypes = getAllExpenseTypes();
+    const expenseSubTypes = getAllExpenseSubTypes();
 
     const backupData = {
-      version: 1,
+      version: 2,
       timestamp: new Date().toISOString(),
       expenses,
       types: expenseTypes,
+      subTypes: expenseSubTypes,
     };
 
     const jsonString = JSON.stringify(backupData, null, 2);
@@ -84,6 +88,12 @@ export const importData = async (): Promise<boolean> => {
     if (backupData && backupData.expenses && backupData.types) {
       clearAllData();
       importExpenseTypesBatch(backupData.types);
+
+      // Import sub-types if present (v2+ backups)
+      if (backupData.subTypes && Array.isArray(backupData.subTypes)) {
+        importExpenseSubTypesBatch(backupData.subTypes);
+      }
+
       importExpensesBatch(backupData.expenses);
       return true;
     } else {

@@ -1,5 +1,5 @@
 import { open } from '@op-engineering/op-sqlite';
-import { Expense, ExpenseType } from './schema';
+import { Expense, ExpenseType, ExpenseSubType } from './schema';
 import { startOfMonth, endOfMonth, format, parseISO } from 'date-fns';
 
 const db = open({
@@ -19,6 +19,14 @@ const DEFAULT_EXPENSE_TYPES: Omit<ExpenseType, 'id'>[] = [
   { name_en: 'Other', name_bn: 'অন্যান্য' },
 ];
 
+// Default sub-types seeded for Food
+const DEFAULT_SUB_TYPES: { parentNameEn: string; nameEn: string; nameBn: string }[] = [
+  { parentNameEn: 'Food ', nameEn: 'Meat', nameBn: 'মাংস' },
+  { parentNameEn: 'Food ', nameEn: 'Fish', nameBn: 'মাছ' },
+  { parentNameEn: 'Food ', nameEn: 'Vegetables', nameBn: 'সবজি' },
+  { parentNameEn: 'Food ', nameEn: 'Spices', nameBn: 'মসলা' },
+];
+
 export const seedDefaultTypes = () => {
   const countResult = db.executeSync('SELECT COUNT(*) as count FROM expense_types');
   const count = (countResult.rows as any[])[0]?.count ?? 0;
@@ -28,6 +36,27 @@ export const seedDefaultTypes = () => {
         'INSERT INTO expense_types (name_en, name_bn) VALUES (?, ?)',
         [encodeURIComponent(t.name_en), encodeURIComponent(t.name_bn)],
       );
+    }
+  }
+};
+
+const seedDefaultSubTypes = () => {
+  const countResult = db.executeSync('SELECT COUNT(*) as count FROM expense_sub_types');
+  const count = (countResult.rows as any[])[0]?.count ?? 0;
+  if (count === 0) {
+    for (const st of DEFAULT_SUB_TYPES) {
+      // Find the parent type by encoded name_en
+      const parentResult = db.executeSync(
+        'SELECT id FROM expense_types WHERE name_en = ?',
+        [encodeURIComponent(st.parentNameEn)],
+      );
+      const parentId = (parentResult.rows as any[])[0]?.id;
+      if (parentId) {
+        db.executeSync(
+          'INSERT INTO expense_sub_types (expense_type_id, name_en, name_bn) VALUES (?, ?, ?)',
+          [parentId, encodeURIComponent(st.nameEn), encodeURIComponent(st.nameBn)],
+        );
+      }
     }
   }
 };
@@ -53,8 +82,28 @@ export const initDB = () => {
     );
   `);
 
+  db.executeSync(`
+    CREATE TABLE IF NOT EXISTS expense_sub_types (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      expense_type_id INTEGER NOT NULL,
+      name_en TEXT NOT NULL,
+      name_bn TEXT NOT NULL,
+      FOREIGN KEY (expense_type_id) REFERENCES expense_types(id) ON DELETE CASCADE
+    );
+  `);
+
+  // Migration: add sub_type column to expenses if it doesn't exist
+  try {
+    db.executeSync('ALTER TABLE expenses ADD COLUMN sub_type TEXT');
+  } catch (_e) {
+    // Column already exists — safe to ignore
+  }
+
   // Seed default types if table is empty
   seedDefaultTypes();
+
+  // Seed default sub-types if table is empty
+  seedDefaultSubTypes();
   
   // Auto-repair existing corrupted default types from before the encode fix
   for (const t of DEFAULT_EXPENSE_TYPES) {
@@ -93,7 +142,54 @@ export const updateExpenseType = (id: number, nameEn: string, nameBn: string): v
 };
 
 export const deleteExpenseType = (id: number): void => {
+  // Also delete associated sub-types
+  db.executeSync('DELETE FROM expense_sub_types WHERE expense_type_id = ?', [id]);
   db.executeSync('DELETE FROM expense_types WHERE id = ?', [id]);
+};
+
+// ─── Expense Sub-Type CRUD ─────────────────────────────────────────
+
+export const getAllExpenseSubTypes = (): ExpenseSubType[] => {
+  const result = db.executeSync('SELECT * FROM expense_sub_types ORDER BY id ASC');
+  const rows = (result.rows as unknown as ExpenseSubType[]) || [];
+
+  return rows.map(row => ({
+    ...row,
+    name_en: row.name_en ? decodeURIComponent(row.name_en) : row.name_en,
+    name_bn: row.name_bn ? decodeURIComponent(row.name_bn) : row.name_bn,
+  }));
+};
+
+export const getSubTypesByExpenseType = (expenseTypeId: number): ExpenseSubType[] => {
+  const result = db.executeSync(
+    'SELECT * FROM expense_sub_types WHERE expense_type_id = ? ORDER BY id ASC',
+    [expenseTypeId],
+  );
+  const rows = (result.rows as unknown as ExpenseSubType[]) || [];
+
+  return rows.map(row => ({
+    ...row,
+    name_en: row.name_en ? decodeURIComponent(row.name_en) : row.name_en,
+    name_bn: row.name_bn ? decodeURIComponent(row.name_bn) : row.name_bn,
+  }));
+};
+
+export const addExpenseSubType = (expenseTypeId: number, nameEn: string, nameBn: string): void => {
+  db.executeSync(
+    'INSERT INTO expense_sub_types (expense_type_id, name_en, name_bn) VALUES (?, ?, ?)',
+    [expenseTypeId, encodeURIComponent(nameEn), encodeURIComponent(nameBn)],
+  );
+};
+
+export const updateExpenseSubType = (id: number, nameEn: string, nameBn: string): void => {
+  db.executeSync(
+    'UPDATE expense_sub_types SET name_en = ?, name_bn = ? WHERE id = ?',
+    [encodeURIComponent(nameEn), encodeURIComponent(nameBn), id],
+  );
+};
+
+export const deleteExpenseSubType = (id: number): void => {
+  db.executeSync('DELETE FROM expense_sub_types WHERE id = ?', [id]);
 };
 
 // ─── Expense CRUD ──────────────────────────────────────────────────
@@ -108,8 +204,8 @@ export const addExpense = (expense: Omit<Expense, 'id'>) => {
   const safeDesc = expense.description ? encodeURIComponent(expense.description) : null;
 
   db.executeSync(
-    'INSERT INTO expenses (title, amount, date, type, description) VALUES (?, ?, ?, ?, ?)',
-    [safeTitle, expense.amount, normalizedDate, expense.type, safeDesc],
+    'INSERT INTO expenses (title, amount, date, type, sub_type, description) VALUES (?, ?, ?, ?, ?, ?)',
+    [safeTitle, expense.amount, normalizedDate, expense.type, expense.sub_type || null, safeDesc],
   );
 };
 
@@ -123,8 +219,8 @@ export const updateExpense = (expense: Expense) => {
   const safeDesc = expense.description ? encodeURIComponent(expense.description) : null;
 
   db.executeSync(
-    'UPDATE expenses SET title = ?, amount = ?, date = ?, type = ?, description = ? WHERE id = ?',
-    [safeTitle, expense.amount, normalizedDate, expense.type, safeDesc, expense.id],
+    'UPDATE expenses SET title = ?, amount = ?, date = ?, type = ?, sub_type = ?, description = ? WHERE id = ?',
+    [safeTitle, expense.amount, normalizedDate, expense.type, expense.sub_type || null, safeDesc, expense.id],
   );
 };
 
@@ -179,6 +275,15 @@ export const getExpensesByCategoryForCurrentMonth = () => {
   return getExpensesByCategoryForDateRange(start, end);
 };
 
+export const getExpensesBySubTypeForDateRange = (startDate: string, endDate: string) => {
+  const result = db.executeSync(
+    'SELECT type, sub_type, SUM(amount) as total FROM expenses WHERE date >= ? AND date <= ? GROUP BY type, sub_type',
+    [startDate, endDate],
+  );
+
+  return (result.rows as { type: string; sub_type: string | null; total: number }[]) || [];
+};
+
 export const getAllExpenses = (): Expense[] => {
   const result = db.executeSync('SELECT * FROM expenses ORDER BY id ASC');
   const rows = (result.rows as unknown as Expense[]) || [];
@@ -198,6 +303,7 @@ export const getAllExpenses = (): Expense[] => {
 
 export const clearAllData = () => {
   db.executeSync('DELETE FROM expenses');
+  db.executeSync('DELETE FROM expense_sub_types');
   db.executeSync('DELETE FROM expense_types');
 };
 
@@ -206,8 +312,8 @@ export const importExpensesBatch = (expenses: Expense[]) => {
     const safeTitle = encodeURIComponent(exp.title);
     const safeDesc = exp.description ? encodeURIComponent(exp.description) : null;
     db.executeSync(
-      'INSERT INTO expenses (id, title, amount, date, type, description) VALUES (?, ?, ?, ?, ?, ?)',
-      [exp.id, safeTitle, exp.amount, exp.date, exp.type, safeDesc]
+      'INSERT INTO expenses (id, title, amount, date, type, sub_type, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [exp.id, safeTitle, exp.amount, exp.date, exp.type, exp.sub_type || null, safeDesc]
     );
   }
 };
@@ -217,6 +323,15 @@ export const importExpenseTypesBatch = (types: ExpenseType[]) => {
     db.executeSync(
       'INSERT INTO expense_types (id, name_en, name_bn) VALUES (?, ?, ?)',
       [type.id, encodeURIComponent(type.name_en), encodeURIComponent(type.name_bn)]
+    );
+  }
+};
+
+export const importExpenseSubTypesBatch = (subTypes: ExpenseSubType[]) => {
+  for (const st of subTypes) {
+    db.executeSync(
+      'INSERT INTO expense_sub_types (id, expense_type_id, name_en, name_bn) VALUES (?, ?, ?, ?)',
+      [st.id, st.expense_type_id, encodeURIComponent(st.name_en), encodeURIComponent(st.name_bn)]
     );
   }
 };
