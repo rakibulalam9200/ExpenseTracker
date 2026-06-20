@@ -9,10 +9,12 @@ import {
   StatusBar,
   useColorScheme,
   Platform,
+  Image,
 } from 'react-native';
-import { Moon, Sun } from 'lucide-react-native';
+import { Moon, Settings, Sun } from 'lucide-react-native';
 import { useColorScheme as useNativeWindColorScheme, cssInterop } from 'nativewind';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
+import Logo from './src/assets/images/logo.svg';
 
 import {
   initDB,
@@ -277,15 +279,19 @@ function AppContent() {
       />
 
       {/* Top Navigation Bar */}
-      <View className="flex-row justify-between items-center px-6 py-4 bg-white dark:bg-slate-900 shadow-sm z-10">
-        <View>
-          <Text className="text-2xl font-bold text-indigo-600 dark:text-indigo-400" style={{ fontFamily }}>
-            {t('appName')}
-          </Text>
-          <Text className="text-xs text-slate-500 dark:text-slate-400 font-medium" style={{ fontFamily }}>
-            {t('offlineFirst')}
-          </Text>
+      <View className="flex-row justify-between items-center px-4 py-2 z-10">
+        <View className="flex-row items-center justify-center">
+          <Logo width={50} height={50} />
+          <View className='px-3'>
+            <Text className="text-2xl font-bold text-indigo-600 dark:text-indigo-400" style={{ fontFamily }}>
+              {t('appName')}
+            </Text>
+            <Text className="text-xs text-slate-500 dark:text-slate-400 font-medium" style={{ fontFamily }}>
+              {t('offlineFirst')}
+            </Text>
+          </View>
         </View>
+
         <View className="flex-row items-center">
           {/* Language Toggle */}
           <TouchableOpacity
@@ -307,6 +313,14 @@ function AppContent() {
             ) : (
               <Moon color="#6366f1" size={24} />
             )}
+          </TouchableOpacity>
+
+          {/* Settings */}
+          <TouchableOpacity
+            onPress={() => { }}
+            className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"
+          >
+            <Settings color="#6366f1" size={24} />
           </TouchableOpacity>
         </View>
       </View>
