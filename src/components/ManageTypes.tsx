@@ -147,7 +147,7 @@ export function ManageTypes({
           onPress={() => setIsOpen(true)}
         >
           <Settings size={16} color="#6366f1" />
-          <Text className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 ml-1.5">
+          <Text className="text-sm font-semibold text-primary-600 dark:text-primary-400 ml-1.5">
             {t('manageTypes')}
           </Text>
         </TouchableOpacity>
@@ -184,7 +184,7 @@ export function ManageTypes({
                     </View>
                     <View className="flex-row">
                       <TouchableOpacity
-                        className="p-2 mr-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/30"
+                        className="p-2 mr-1 rounded-lg bg-primary-50 dark:bg-primary-900/30"
                         onPress={() => handleOpenEdit(et)}
                       >
                         <Pencil size={16} color="#6366f1" />
@@ -203,7 +203,7 @@ export function ManageTypes({
                     className="flex-row items-center justify-between mt-3 pt-3 border-t border-slate-200 dark:border-slate-700"
                     onPress={() => handleOpenSubTypes(et)}
                   >
-                    <Text className="text-sm font-medium text-indigo-600 dark:text-indigo-400" style={{ fontFamily }}>
+                    <Text className="text-sm font-medium text-primary-600 dark:text-primary-400" style={{ fontFamily }}>
                       {t('subTypes')} {subCount > 0 ? `(${subCount})` : ''}
                     </Text>
                     <ChevronRight size={16} color="#6366f1" />
@@ -215,7 +215,7 @@ export function ManageTypes({
 
           <View className="p-5 border-t border-slate-100 dark:border-slate-800">
             <TouchableOpacity
-              className="bg-indigo-600 active:bg-indigo-700 flex-row items-center justify-center py-3.5 rounded-xl"
+              className="bg-primary-600 active:bg-primary-700 flex-row items-center justify-center py-3.5 rounded-xl"
               onPress={handleOpenAdd}
             >
               <Plus color="white" size={20} />
@@ -279,15 +279,15 @@ export function ManageTypes({
                 className={cn(
                   "flex-1 py-3.5 rounded-xl items-center ml-2",
                   nameEn.trim() && nameBn.trim()
-                    ? "bg-indigo-600 active:bg-indigo-700"
-                    : "bg-indigo-300 dark:bg-indigo-900/50",
+                    ? "bg-primary-600 active:bg-primary-700"
+                    : "bg-primary-300 dark:bg-primary-900/50",
                 )}
                 disabled={!nameEn.trim() || !nameBn.trim()}
                 onPress={handleSave}
               >
                 <Text className={cn(
                   "font-bold",
-                  nameEn.trim() && nameBn.trim() ? "text-white" : "text-indigo-100 dark:text-indigo-400/50",
+                  nameEn.trim() && nameBn.trim() ? "text-white" : "text-primary-100 dark:text-primary-400/50",
                 )}>
                   {t('save')}
                 </Text>
@@ -306,7 +306,7 @@ export function ManageTypes({
                 {t('manageSubTypes')}
               </Text>
               {selectedParentType && (
-                <Text className="text-sm text-indigo-600 dark:text-indigo-400 mt-1" style={{ fontFamily }}>
+                <Text className="text-sm text-primary-600 dark:text-primary-400 mt-1" style={{ fontFamily }}>
                   {selectedParentType.name_en} / {selectedParentType.name_bn}
                 </Text>
               )}
@@ -339,7 +339,7 @@ export function ManageTypes({
                   </View>
                   <View className="flex-row">
                     <TouchableOpacity
-                      className="p-2 mr-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/30"
+                      className="p-2 mr-1 rounded-lg bg-primary-50 dark:bg-primary-900/30"
                       onPress={() => handleOpenEditSubType(st)}
                     >
                       <Pencil size={16} color="#6366f1" />
@@ -358,7 +358,7 @@ export function ManageTypes({
 
           <View className="p-5 border-t border-slate-100 dark:border-slate-800">
             <TouchableOpacity
-              className="bg-indigo-600 active:bg-indigo-700 flex-row items-center justify-center py-3.5 rounded-xl"
+              className="bg-primary-600 active:bg-primary-700 flex-row items-center justify-center py-3.5 rounded-xl"
               onPress={handleOpenAddSubType}
             >
               <Plus color="white" size={20} />
@@ -422,15 +422,15 @@ export function ManageTypes({
                 className={cn(
                   "flex-1 py-3.5 rounded-xl items-center ml-2",
                   subNameEn.trim() && subNameBn.trim()
-                    ? "bg-indigo-600 active:bg-indigo-700"
-                    : "bg-indigo-300 dark:bg-indigo-900/50",
+                    ? "bg-primary-600 active:bg-primary-700"
+                    : "bg-primary-300 dark:bg-primary-900/50",
                 )}
                 disabled={!subNameEn.trim() || !subNameBn.trim()}
                 onPress={handleSaveSubType}
               >
                 <Text className={cn(
                   "font-bold",
-                  subNameEn.trim() && subNameBn.trim() ? "text-white" : "text-indigo-100 dark:text-indigo-400/50",
+                  subNameEn.trim() && subNameBn.trim() ? "text-white" : "text-primary-100 dark:text-primary-400/50",
                 )}>
                   {t('save')}
                 </Text>

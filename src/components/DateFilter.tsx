@@ -94,7 +94,7 @@ export function DateFilter({ startDate, endDate, onApply, onClear, isFiltered }:
             </View>
 
             <TouchableOpacity
-              className="bg-indigo-600 active:bg-indigo-700 py-4 rounded-xl items-center justify-center"
+              className="bg-primary-600 active:bg-primary-700 py-4 rounded-xl items-center justify-center"
               onPress={handleApply}
             >
               <Text className="text-white font-bold text-lg">{t('applyFilter')}</Text>

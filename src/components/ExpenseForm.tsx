@@ -134,7 +134,7 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
   return (
     <>
       <TouchableOpacity
-        className="bg-indigo-600 active:bg-indigo-700 flex-row items-center justify-center py-3.5 px-6 rounded-full shadow-md flex-1 mr-3"
+        className="bg-primary-500 active:bg-primary-600 flex-row items-center justify-center py-3.5 px-6 rounded-full shadow-md flex-1 mr-3"
         onPress={() => setIsOpen(true)}
       >
         <Plus color="white" size={20} />

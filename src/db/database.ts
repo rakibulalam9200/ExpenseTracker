@@ -275,6 +275,15 @@ export const getExpensesByCategoryForCurrentMonth = () => {
   return getExpensesByCategoryForDateRange(start, end);
 };
 
+export const getMonthlyExpensesForYear = (year: number) => {
+  const result = db.executeSync(
+    "SELECT strftime('%m', date) as month, SUM(amount) as total FROM expenses WHERE strftime('%Y', date) = ? GROUP BY month ORDER BY month ASC",
+    [year.toString()],
+  );
+
+  return (result.rows as { month: string; total: number }[]) || [];
+};
+
 export const getExpensesBySubTypeForDateRange = (startDate: string, endDate: string) => {
   const result = db.executeSync(
     'SELECT type, sub_type, SUM(amount) as total FROM expenses WHERE date >= ? AND date <= ? GROUP BY type, sub_type',

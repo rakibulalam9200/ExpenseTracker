@@ -15,7 +15,7 @@ interface ExpenseChartProps {
 }
 
 const COLORS = [
-  '#4f46e5', // indigo-600
+  '#4f46e5', // primary-600
   '#06b6d4', // cyan-500
   '#10b981', // emerald-500
   '#f59e0b', // amber-500
@@ -61,15 +61,14 @@ export function ExpenseChart({ data, subTypeData, expenseTypes, expenseSubTypes 
   return (
     <View className="bg-white dark:bg-slate-800 rounded-3xl p-6 items-center border border-slate-100 dark:border-slate-700 my-4 shadow-sm">
       <View className='flex-row justify-between w-full items-center'>
-        <Text className="text-lg font-bold text-slate-800 dark:text-white mb-6 self-start">
+        <Text className="text-lg font-bold text-primary-800 dark:text-white mb-6 self-start">
           {t('expenseBreakdown')}
         </Text>
         <TouchableOpacity onPress={() => setReportVisible(true)}>
-          <Text className="text-lg font-bold text-indigo-600  mb-6 self-end">
+          <Text className="text-lg font-bold text-primary-600 mb-6 self-end">
             {t('report')}
           </Text>
         </TouchableOpacity>
-
       </View>
 
 

@@ -98,11 +98,11 @@ export function ExpenseCard({ expense, expenseTypes, expenseSubTypes, onEdit, on
       {/* Action Buttons */}
       <View className="flex-row justify-end mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
         <TouchableOpacity
-          className="flex-row items-center px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 mr-2"
+          className="flex-row items-center px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-900/30 mr-2"
           onPress={() => onEdit(expense)}
         >
           <Pencil size={14} color="#6366f1" />
-          <Text className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 ml-1">
+          <Text className="text-sm font-semibold text-primary-600 dark:text-primary-400 ml-1">
             {t('edit')}
           </Text>
         </TouchableOpacity>

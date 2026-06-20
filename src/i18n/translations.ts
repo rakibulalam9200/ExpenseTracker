@@ -82,6 +82,9 @@ export const translations = {
     noSubTypes: 'No sub types added.',
     subTypeNameEnPlaceholder: 'e.g. Meat',
     subTypeNameBnPlaceholder: 'e.g. মাংস',
+    yearlyReport: 'Yearly Report',
+    year: 'Year',
+    months: 'Month',
   },
   bn: {
     appName: 'খরচ ট্র্যাকার',
@@ -164,6 +167,9 @@ export const translations = {
     noSubTypes: 'কোনো উপ ধরন যোগ করা হয়নি।',
     subTypeNameEnPlaceholder: 'যেমন: Meat',
     subTypeNameBnPlaceholder: 'যেমন: মাংস',
+    yearlyReport: 'বার্ষিক রিপোর্ট',
+    year: 'বছর',
+    months: 'মাস',
   },
 } as const;
 

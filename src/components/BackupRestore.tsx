@@ -55,7 +55,7 @@ export const BackupRestore: React.FC<BackupRestoreProps> = ({ onRestoreComplete,
         onPress={handleBackup}
         className="bg-white dark:bg-slate-800 p-4 rounded-xl flex-row items-center border border-slate-100 dark:border-slate-700 mb-3"
       >
-        <View className="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-lg mr-3">
+        <View className="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-lg mr-3">
           <Download color="#6366f1" size={20} />
         </View>
         <Text className="text-base text-slate-800 dark:text-slate-200 font-medium flex-1">

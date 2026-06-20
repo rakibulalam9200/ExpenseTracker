@@ -306,7 +306,7 @@ export function ReportModal({ visible, onClose, chartData, totalExpense, subType
               <Text className="text-lg font-bold text-slate-800 dark:text-white">
                 {t('total')}
               </Text>
-              <Text className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+              <Text className="text-xl font-bold text-primary-600 dark:text-primary-400">
                 ৳{totalExpense.toFixed(2)}
               </Text>
             </View>
@@ -317,15 +317,15 @@ export function ReportModal({ visible, onClose, chartData, totalExpense, subType
         <View className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex-row">
           <TouchableOpacity
             onPress={() => handleExportPDF('download')}
-            className="flex-1 bg-indigo-50 dark:bg-indigo-900/30 py-4 rounded-2xl items-center mr-2"
+            className="flex-1 bg-primary-50 dark:bg-primary-900/30 py-4 rounded-2xl items-center mr-2"
           >
-            <Text className="text-indigo-600 dark:text-indigo-400 font-bold text-base">
+            <Text className="text-primary-600 dark:text-primary-400 font-bold text-base">
               {t('downloadPdf')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => handleExportPDF('share')}
-            className="flex-1 bg-indigo-600 py-4 rounded-2xl items-center ml-2"
+            className="flex-1 bg-primary-600 py-4 rounded-2xl items-center ml-2"
           >
             <Text className="text-white font-bold text-base">
               {t('sharePdf')}

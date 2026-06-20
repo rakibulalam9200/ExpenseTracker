@@ -13,7 +13,7 @@ import {
   TextInput,
   Modal,
 } from 'react-native';
-import { Moon, Settings, Sun, Search, X, PieChart } from 'lucide-react-native';
+import { Moon, Settings, Sun, Search, X, PieChart, BarChart3 } from 'lucide-react-native';
 import { useColorScheme as useNativeWindColorScheme, cssInterop } from 'nativewind';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
 import Logo from './src/assets/images/logo_rounded.svg';
@@ -39,6 +39,7 @@ import { Expense, ExpenseType, ExpenseSubType } from './src/db/schema';
 import { ExpenseCard } from './src/components/ExpenseCard';
 import { ExpenseForm } from './src/components/ExpenseForm';
 import { ExpenseChart } from './src/components/ExpenseChart';
+import { YearlyReportModal } from './src/components/YearlyReportModal';
 import { DateFilter } from './src/components/DateFilter';
 import { ManageTypes } from './src/components/ManageTypes';
 import { SkeletonLoader } from './src/components/SkeletonLoader';
@@ -48,6 +49,18 @@ import { I18nProvider, useI18n } from './src/i18n/I18nContext';
 import { useDebounce } from './src/hooks/useDebounce';
 
 cssInterop(SafeAreaView, { className: 'style' });
+
+// Enable className support for Lucide icons
+[Moon, Settings, Sun, Search, X, PieChart, BarChart3].forEach((icon) => {
+  cssInterop(icon, {
+    className: {
+      target: 'style',
+      nativeStyleToProp: {
+        color: true,
+      },
+    },
+  });
+});
 
 // Android-safe font that supports Bangla/Bengali script
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
@@ -74,6 +87,7 @@ function AppContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isChartModalOpen, setIsChartModalOpen] = useState(false);
+  const [isYearlyReportModalOpen, setIsYearlyReportModalOpen] = useState(false);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
@@ -249,7 +263,7 @@ function AppContent() {
 
   const renderHeader = () => (
     <View className="mb-4">
-      <View className="flex-row items-center justify-between mb-6">
+      <View className="flex-row items-center justify-between mb-4">
         <ExpenseForm
           onSubmit={handleAddExpense}
           onUpdate={handleUpdateExpense}
@@ -258,17 +272,12 @@ function AppContent() {
           expenseTypes={expenseTypes}
           expenseSubTypes={expenseSubTypes}
         />
-        <TouchableOpacity
-          onPress={() => setIsChartModalOpen(true)}
-          className="bg-indigo-100 dark:bg-indigo-900/50 p-3.5 rounded-full shadow-sm border border-indigo-200 dark:border-indigo-800"
-        >
-          <PieChart color="#6366f1" size={20} />
-        </TouchableOpacity>
+
       </View>
 
       <View className='flex-col mb-4'>
         <View className='flex-row justify-between items-center'>
-          <View className="flex-1 flex-row items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-4 mr-3">
+          <View className="flex-1 flex-row items-center bg-white dark:bg-slate-800 border border-slate-200 py-2 dark:border-slate-700 rounded-full px-4 mr-3">
             <Search size={18} color="#94a3b8" />
             <TextInput
               className="flex-1 ml-2 text-base text-slate-900 dark:text-white py-0"
@@ -290,11 +299,11 @@ function AppContent() {
 
         {isFiltered && (
           <View className="flex-row items-center mt-3 ml-1">
-            <View className="bg-indigo-100 dark:bg-indigo-900/40 border border-indigo-200 dark:border-indigo-700 rounded-full px-4 py-2 flex-row items-center">
-              <Text className="text-sm font-semibold text-indigo-700 dark:text-indigo-300 mr-2">
+            <View className="bg-primary-100 dark:bg-primary-900/40 border border-primary-200 dark:border-primary-700 rounded-full px-4 py-2 flex-row items-center">
+              <Text className="text-sm font-semibold text-primary-700 dark:text-primary-300 mr-2">
                 {`${format(filterStart, 'MMM dd')} - ${format(filterEnd, 'MMM dd')}`}
               </Text>
-              <TouchableOpacity onPress={handleClearFilter} className="p-1 rounded-full bg-indigo-200 dark:bg-indigo-800">
+              <TouchableOpacity onPress={handleClearFilter} className="p-1 rounded-full bg-primary-200 dark:bg-primary-800">
                 <X size={14} color="#4338ca" />
               </TouchableOpacity>
             </View>
@@ -319,7 +328,7 @@ function AppContent() {
         <View className="flex-row items-center justify-center">
           <Logo width={50} height={50} />
           <View className='px-3'>
-            <Text className="text-2xl font-bold text-indigo-600 dark:text-indigo-400" style={{ fontFamily }}>
+            <Text className="text-2xl font-bold text-primary-600 dark:text-primary-400" style={{ fontFamily }}>
               {t('appName')}
             </Text>
             <Text className="text-xs text-slate-500 dark:text-slate-400 font-medium" style={{ fontFamily }}>
@@ -334,7 +343,7 @@ function AppContent() {
             onPress={toggleLanguage}
             className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full mr-2"
           >
-            <Text className="text-sm font-bold text-indigo-600 dark:text-indigo-400" style={{ fontFamily }}>
+            <Text className="text-sm font-bold text-primary-600 dark:text-primary-400" style={{ fontFamily }}>
               {lang === 'en' ? 'বাং' : 'EN'}
             </Text>
           </TouchableOpacity>
@@ -426,7 +435,7 @@ function AppContent() {
                   onPress={onPress}
                   className="bg-white dark:bg-slate-800 p-4 rounded-xl flex-row items-center border border-slate-100 dark:border-slate-700 mb-3"
                 >
-                  <View className="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-lg mr-3">
+                  <View className="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-lg mr-3">
                     <Settings color="#6366f1" size={20} />
                   </View>
                   <Text className="text-base text-slate-800 dark:text-slate-200 font-medium flex-1">
@@ -440,6 +449,36 @@ function AppContent() {
               onRestoreComplete={() => { loadTypes(); loadSubTypes(); loadData(); }}
               onActionComplete={() => setIsSettingsOpen(false)}
             />
+
+            <TouchableOpacity
+              onPress={() => {
+                setIsSettingsOpen(false);
+                setIsChartModalOpen(true);
+              }}
+              className="bg-white dark:bg-slate-800 p-4 rounded-xl flex-row items-center border border-slate-100 dark:border-slate-700 mb-3"
+            >
+              <View className="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-lg mr-3">
+                <PieChart color="#0ea5e9" size={20} />
+              </View>
+              <Text className="text-base text-slate-800 dark:text-slate-200 font-medium flex-1">
+                {t('expenseChart')}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setIsSettingsOpen(false);
+                setIsYearlyReportModalOpen(true);
+              }}
+              className="bg-white dark:bg-slate-800 p-4 rounded-xl flex-row items-center border border-slate-100 dark:border-slate-700 mb-3"
+            >
+              <View className="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-lg mr-3">
+                <BarChart3 color="#0ea5e9" size={20} />
+              </View>
+              <Text className="text-base text-slate-800 dark:text-slate-200 font-medium flex-1">
+                {t('yearlyReport')}
+              </Text>
+            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -481,6 +520,11 @@ function AppContent() {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      <YearlyReportModal
+        visible={isYearlyReportModalOpen}
+        onClose={() => setIsYearlyReportModalOpen(false)}
+      />
     </SafeAreaView>
   );
 }
