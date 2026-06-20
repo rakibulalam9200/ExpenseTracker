@@ -36,37 +36,13 @@ export function DateFilter({ startDate, endDate, onApply, onClear, isFiltered }:
 
   return (
     <>
-      <View className="flex-row items-center mb-4">
+      <View className="flex-row items-center">
         <TouchableOpacity
-          className={`flex-row items-center px-4 py-2.5 rounded-full mr-2 ${
-            isFiltered
-              ? 'bg-indigo-100 dark:bg-indigo-900/40 border border-indigo-200 dark:border-indigo-700'
-              : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'
-          }`}
+          className="p-2"
           onPress={handleOpen}
         >
-          <Filter size={16} color={isFiltered ? '#6366f1' : '#94a3b8'} />
-          <Text
-            className={`text-sm font-semibold ml-1.5 ${
-              isFiltered ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-300'
-            }`}
-          >
-            {isFiltered
-              ? `${format(startDate, 'MMM dd')} - ${format(endDate, 'MMM dd')}`
-              : t('filter')}
-          </Text>
+          <Filter size={24} color="#6366f1" />
         </TouchableOpacity>
-
-        {isFiltered && (
-          <TouchableOpacity
-            className="px-3 py-2.5 rounded-full bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-700"
-            onPress={onClear}
-          >
-            <Text className="text-sm font-semibold text-rose-600 dark:text-rose-400">
-              {t('clearFilter')}
-            </Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* Filter Modal */}

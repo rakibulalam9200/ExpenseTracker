@@ -10,11 +10,13 @@ import {
   useColorScheme,
   Platform,
   Image,
+  TextInput,
+  Modal,
 } from 'react-native';
-import { Moon, Settings, Sun } from 'lucide-react-native';
+import { Moon, Settings, Sun, Search, X, PieChart } from 'lucide-react-native';
 import { useColorScheme as useNativeWindColorScheme, cssInterop } from 'nativewind';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
-import Logo from './src/assets/images/logo.svg';
+import Logo from './src/assets/images/logo_rounded.svg';
 
 import {
   initDB,
@@ -43,6 +45,7 @@ import { SkeletonLoader } from './src/components/SkeletonLoader';
 import { BackupRestore } from './src/components/BackupRestore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { I18nProvider, useI18n } from './src/i18n/I18nContext';
+import { useDebounce } from './src/hooks/useDebounce';
 
 cssInterop(SafeAreaView, { className: 'style' });
 
@@ -68,6 +71,28 @@ function AppContent() {
   const [filterStart, setFilterStart] = useState(startOfMonth(now));
   const [filterEnd, setFilterEnd] = useState(endOfMonth(now));
   const [isFiltered, setIsFiltered] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isChartModalOpen, setIsChartModalOpen] = useState(false);
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
+  const filteredExpenses = expenses.filter(expense => {
+    if (!debouncedSearchQuery.trim()) return true;
+    const query = debouncedSearchQuery.toLowerCase();
+
+    const matchesTitle = expense.title.toLowerCase().includes(query);
+
+    const type = expenseTypes.find(t => t.id.toString() === expense.type);
+    const matchesTypeEn = type?.name_en.toLowerCase().includes(query) || false;
+    const matchesTypeBn = type?.name_bn.toLowerCase().includes(query) || false;
+
+    const subType = expenseSubTypes.find(st => st.id.toString() === expense.sub_type);
+    const matchesSubTypeEn = subType?.name_en.toLowerCase().includes(query) || false;
+    const matchesSubTypeBn = subType?.name_bn.toLowerCase().includes(query) || false;
+
+    return matchesTitle || matchesTypeEn || matchesTypeBn || matchesSubTypeEn || matchesSubTypeBn;
+  });
 
   const loadTypes = useCallback(() => {
     try {
@@ -224,47 +249,58 @@ function AppContent() {
 
   const renderHeader = () => (
     <View className="mb-4">
-      <ExpenseForm
-        onSubmit={handleAddExpense}
-        onUpdate={handleUpdateExpense}
-        editingExpense={editingExpense}
-        onCancelEdit={() => setEditingExpense(null)}
-        expenseTypes={expenseTypes}
-        expenseSubTypes={expenseSubTypes}
-      />
-
-      <View className='flex-row justify-between items-center'>
-        <DateFilter
-          startDate={filterStart}
-          endDate={filterEnd}
-          onApply={handleApplyFilter}
-          onClear={handleClearFilter}
-          isFiltered={isFiltered}
-        />
-
-
-        <ManageTypes
+      <View className="flex-row items-center justify-between mb-6">
+        <ExpenseForm
+          onSubmit={handleAddExpense}
+          onUpdate={handleUpdateExpense}
+          editingExpense={editingExpense}
+          onCancelEdit={() => setEditingExpense(null)}
           expenseTypes={expenseTypes}
           expenseSubTypes={expenseSubTypes}
-          onAdd={handleAddType}
-          onUpdate={handleUpdateType}
-          onDelete={handleDeleteType}
-          onAddSubType={handleAddSubType}
-          onUpdateSubType={handleUpdateSubType}
-          onDeleteSubType={handleDeleteSubType}
         />
+        <TouchableOpacity
+          onPress={() => setIsChartModalOpen(true)}
+          className="bg-indigo-100 dark:bg-indigo-900/50 p-3.5 rounded-full shadow-sm border border-indigo-200 dark:border-indigo-800"
+        >
+          <PieChart color="#6366f1" size={20} />
+        </TouchableOpacity>
       </View>
-      {chartData.length > 0 && (
-        <ExpenseChart
-          data={chartData}
-          subTypeData={subTypeChartData}
-          expenseTypes={expenseTypes}
-          expenseSubTypes={expenseSubTypes}
-        />
-      )}
 
-      <BackupRestore onRestoreComplete={() => { loadTypes(); loadSubTypes(); loadData(); }} />
+      <View className='flex-col mb-4'>
+        <View className='flex-row justify-between items-center'>
+          <View className="flex-1 flex-row items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-4 mr-3">
+            <Search size={18} color="#94a3b8" />
+            <TextInput
+              className="flex-1 ml-2 text-base text-slate-900 dark:text-white py-0"
+              placeholder="Search ...."
+              placeholderTextColor="#94a3b8"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              style={{ fontFamily }}
+            />
+          </View>
+          <DateFilter
+            startDate={filterStart}
+            endDate={filterEnd}
+            onApply={handleApplyFilter}
+            onClear={handleClearFilter}
+            isFiltered={isFiltered}
+          />
+        </View>
 
+        {isFiltered && (
+          <View className="flex-row items-center mt-3 ml-1">
+            <View className="bg-indigo-100 dark:bg-indigo-900/40 border border-indigo-200 dark:border-indigo-700 rounded-full px-4 py-2 flex-row items-center">
+              <Text className="text-sm font-semibold text-indigo-700 dark:text-indigo-300 mr-2">
+                {`${format(filterStart, 'MMM dd')} - ${format(filterEnd, 'MMM dd')}`}
+              </Text>
+              <TouchableOpacity onPress={handleClearFilter} className="p-1 rounded-full bg-indigo-200 dark:bg-indigo-800">
+                <X size={14} color="#4338ca" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
       <Text className="text-xl font-bold text-slate-800 dark:text-white mt-4 mb-2" style={{ fontFamily }}>
         {t('recentExpenses')}
       </Text>
@@ -306,21 +342,21 @@ function AppContent() {
           {/* Dark Mode Toggle */}
           <TouchableOpacity
             onPress={toggleColorScheme}
-            className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"
+            className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full mr-2"
           >
             {isDark ? (
-              <Sun color="#fbbf24" size={24} />
+              <Sun color="#fbbf24" size={20} />
             ) : (
-              <Moon color="#6366f1" size={24} />
+              <Moon color="#6366f1" size={20} />
             )}
           </TouchableOpacity>
 
           {/* Settings */}
           <TouchableOpacity
-            onPress={() => { }}
+            onPress={() => setIsSettingsOpen(true)}
             className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"
           >
-            <Settings color="#6366f1" size={24} />
+            <Settings color="#6366f1" size={20} />
           </TouchableOpacity>
         </View>
       </View>
@@ -331,7 +367,7 @@ function AppContent() {
           <SkeletonLoader />
         ) : (
           <FlatList
-            data={expenses}
+            data={filteredExpenses}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
               <ExpenseCard
@@ -342,7 +378,7 @@ function AppContent() {
                 onDelete={handleDeleteExpense}
               />
             )}
-            ListHeaderComponent={renderHeader}
+            ListHeaderComponent={renderHeader()}
             ListEmptyComponent={
               <View className="items-center justify-center py-10">
                 <Text className="text-slate-400 dark:text-slate-500 text-lg" style={{ fontFamily }}>
@@ -355,6 +391,96 @@ function AppContent() {
           />
         )}
       </View>
+
+      {/* Settings Modal */}
+      <Modal visible={isSettingsOpen} animationType="slide" transparent={true} onRequestClose={() => setIsSettingsOpen(false)}>
+        <TouchableOpacity
+          className="flex-1 bg-black/50 justify-end"
+          activeOpacity={1}
+          onPress={() => setIsSettingsOpen(false)}
+        >
+          <View
+            className="bg-slate-50 dark:bg-slate-900 rounded-t-3xl p-5 pb-8"
+            onStartShouldSetResponder={() => true}
+          >
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-xl font-bold text-slate-900 dark:text-white">
+                {t('settings') || 'Settings'}
+              </Text>
+              <TouchableOpacity onPress={() => setIsSettingsOpen(false)} className="p-2 -mr-2">
+                <X color="#94a3b8" size={24} />
+              </TouchableOpacity>
+            </View>
+
+            <ManageTypes
+              expenseTypes={expenseTypes}
+              expenseSubTypes={expenseSubTypes}
+              onAdd={handleAddType}
+              onUpdate={handleUpdateType}
+              onDelete={handleDeleteType}
+              onAddSubType={handleAddSubType}
+              onUpdateSubType={handleUpdateSubType}
+              onDeleteSubType={handleDeleteSubType}
+              renderTrigger={(onPress) => (
+                <TouchableOpacity
+                  onPress={onPress}
+                  className="bg-white dark:bg-slate-800 p-4 rounded-xl flex-row items-center border border-slate-100 dark:border-slate-700 mb-3"
+                >
+                  <View className="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-lg mr-3">
+                    <Settings color="#6366f1" size={20} />
+                  </View>
+                  <Text className="text-base text-slate-800 dark:text-slate-200 font-medium flex-1">
+                    {t('manageTypes')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+
+            <BackupRestore
+              onRestoreComplete={() => { loadTypes(); loadSubTypes(); loadData(); }}
+              onActionComplete={() => setIsSettingsOpen(false)}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Chart Modal */}
+      <Modal visible={isChartModalOpen} animationType="slide" transparent={true} onRequestClose={() => setIsChartModalOpen(false)}>
+        <TouchableOpacity
+          className="flex-1 bg-black/50 justify-end"
+          activeOpacity={1}
+          onPress={() => setIsChartModalOpen(false)}
+        >
+          <View
+            className="bg-slate-50 dark:bg-slate-900 rounded-t-3xl p-5 pb-8 max-h-[80%]"
+            onStartShouldSetResponder={() => true}
+          >
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-xl font-bold text-slate-900 dark:text-white">
+                {t('expenseChart') || 'Expense Chart'}
+              </Text>
+              <TouchableOpacity onPress={() => setIsChartModalOpen(false)} className="p-2 -mr-2">
+                <X color="#94a3b8" size={24} />
+              </TouchableOpacity>
+            </View>
+
+            {chartData.length > 0 ? (
+              <ExpenseChart
+                data={chartData}
+                subTypeData={subTypeChartData}
+                expenseTypes={expenseTypes}
+                expenseSubTypes={expenseSubTypes}
+              />
+            ) : (
+              <View className="items-center justify-center py-10">
+                <Text className="text-slate-400 dark:text-slate-500 text-lg" style={{ fontFamily }}>
+                  {t('noExpenses') || 'No expenses found.'}
+                </Text>
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }

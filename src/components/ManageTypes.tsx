@@ -17,6 +17,7 @@ interface ManageTypesProps {
   onAddSubType: (expenseTypeId: number, nameEn: string, nameBn: string) => void;
   onUpdateSubType: (id: number, nameEn: string, nameBn: string) => void;
   onDeleteSubType: (id: number) => void;
+  renderTrigger?: (onPress: () => void) => React.ReactNode;
 }
 
 export function ManageTypes({
@@ -28,6 +29,7 @@ export function ManageTypes({
   onAddSubType,
   onUpdateSubType,
   onDeleteSubType,
+  renderTrigger,
 }: ManageTypesProps) {
   const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
@@ -137,15 +139,19 @@ export function ManageTypes({
 
   return (
     <>
-      <TouchableOpacity
-        className="flex-row items-center px-4 py-2.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 mb-4"
-        onPress={() => setIsOpen(true)}
-      >
-        <Settings size={16} color="#6366f1" />
-        <Text className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 ml-1.5">
-          {t('manageTypes')}
-        </Text>
-      </TouchableOpacity>
+      {renderTrigger ? (
+        renderTrigger(() => setIsOpen(true))
+      ) : (
+        <TouchableOpacity
+          className="flex-row items-center px-4 py-2.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 mb-4"
+          onPress={() => setIsOpen(true)}
+        >
+          <Settings size={16} color="#6366f1" />
+          <Text className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 ml-1.5">
+            {t('manageTypes')}
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* Types List Modal */}
       <Modal visible={isOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setIsOpen(false)}>

@@ -6,9 +6,10 @@ import { useI18n } from '../i18n/I18nContext';
 
 interface BackupRestoreProps {
   onRestoreComplete: () => void;
+  onActionComplete?: () => void;
 }
 
-export const BackupRestore: React.FC<BackupRestoreProps> = ({ onRestoreComplete }) => {
+export const BackupRestore: React.FC<BackupRestoreProps> = ({ onRestoreComplete, onActionComplete }) => {
   const { t } = useI18n();
 
   const handleBackup = async () => {
@@ -21,6 +22,7 @@ export const BackupRestore: React.FC<BackupRestoreProps> = ({ onRestoreComplete 
     } else {
       Alert.alert(t('error'), t('backupFailed'));
     }
+    if (onActionComplete) onActionComplete();
   };
 
   const handleRestore = () => {
@@ -40,6 +42,7 @@ export const BackupRestore: React.FC<BackupRestoreProps> = ({ onRestoreComplete 
             } else {
               Alert.alert(t('error'), t('restoreFailed'));
             }
+            if (onActionComplete) onActionComplete();
           },
         },
       ]
@@ -47,26 +50,31 @@ export const BackupRestore: React.FC<BackupRestoreProps> = ({ onRestoreComplete 
   };
 
   return (
-    <View className="flex-row justify-between mt-4">
+    <View className="mt-2">
       <TouchableOpacity
         onPress={handleBackup}
-        className="flex-1 mr-2 bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-xl flex-row items-center justify-center border border-indigo-200 dark:border-indigo-800"
+        className="bg-white dark:bg-slate-800 p-4 rounded-xl flex-row items-center border border-slate-100 dark:border-slate-700 mb-3"
       >
-        <Download color="#6366f1" size={20} className="mr-2" />
-        <Text className="text-indigo-700 dark:text-indigo-300 font-medium">
+        <View className="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-lg mr-3">
+          <Download color="#6366f1" size={20} />
+        </View>
+        <Text className="text-base text-slate-800 dark:text-slate-200 font-medium flex-1">
           {t('backupData')}
         </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         onPress={handleRestore}
-        className="flex-1 ml-2 bg-rose-100 dark:bg-rose-900/50 p-3 rounded-xl flex-row items-center justify-center border border-rose-200 dark:border-rose-800"
+        className="bg-white dark:bg-slate-800 p-4 rounded-xl flex-row items-center border border-slate-100 dark:border-slate-700"
       >
-        <Upload color="#e11d48" size={20} className="mr-2" />
-        <Text className="text-rose-700 dark:text-rose-300 font-medium">
+        <View className="bg-rose-100 dark:bg-rose-900/50 p-2 rounded-lg mr-3">
+          <Upload color="#e11d48" size={20} />
+        </View>
+        <Text className="text-base text-slate-800 dark:text-slate-200 font-medium flex-1">
           {t('restoreData')}
         </Text>
       </TouchableOpacity>
     </View>
   );
 };
+

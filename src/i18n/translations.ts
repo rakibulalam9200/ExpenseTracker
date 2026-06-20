@@ -3,6 +3,8 @@ export type Language = 'en' | 'bn';
 export const translations = {
   en: {
     appName: 'ExpenseTracker',
+    settings: 'Settings',
+    expenseChart: 'Expense Chart',
     offlineFirst: 'Offline First',
     addExpense: 'Add Expense',
     newExpense: 'New Expense',
@@ -83,6 +85,8 @@ export const translations = {
   },
   bn: {
     appName: 'খরচ ট্র্যাকার',
+    settings: 'সেটিংস',
+    expenseChart: 'খরচের চার্ট',
     offlineFirst: 'অফলাইন প্রথম',
     addExpense: 'খরচ যোগ করুন',
     newExpense: 'নতুন খরচ',
