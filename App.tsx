@@ -356,7 +356,7 @@ function AppContent() {
             {isDark ? (
               <Sun color="#fbbf24" size={20} />
             ) : (
-              <Moon color="#6366f1" size={20} />
+              <Moon color="#191970" size={20} />
             )}
           </TouchableOpacity>
 
@@ -365,7 +365,7 @@ function AppContent() {
             onPress={() => setIsSettingsOpen(true)}
             className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"
           >
-            <Settings color="#6366f1" size={20} />
+            <Settings color={isDark ? "#6366f1" : "#191970"} size={20} />
           </TouchableOpacity>
         </View>
       </View>
@@ -373,7 +373,7 @@ function AppContent() {
       {/* Main Content Area */}
       <View className="flex-1 px-4 pt-6">
         {!isDBReady ? (
-          <SkeletonLoader />
+          <SkeletonLoader isDark={isDark} />
         ) : (
           <FlatList
             data={filteredExpenses}

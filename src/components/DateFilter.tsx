@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, Platform, useColorScheme } from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { Filter, X, Calendar as CalendarIcon } from 'lucide-react-native';
 import { useI18n } from '../i18n/I18nContext';
+import { useColorScheme as useNativeWindColorScheme, cssInterop } from 'nativewind';
 
 // Android-safe font that supports Bangla/Bengali script
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
@@ -17,6 +18,9 @@ interface DateFilterProps {
 }
 
 export function DateFilter({ startDate, endDate, onApply, onClear, isFiltered }: DateFilterProps) {
+  const { colorScheme, toggleColorScheme } = useNativeWindColorScheme();
+  const systemColorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark' || ((colorScheme as any) === 'system' && systemColorScheme === 'dark');
   const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const [tempStart, setTempStart] = useState(startDate);
@@ -41,7 +45,7 @@ export function DateFilter({ startDate, endDate, onApply, onClear, isFiltered }:
           className="p-2"
           onPress={handleOpen}
         >
-          <Filter size={24} color="#6366f1" />
+          <Filter size={24} color={isDark ? "#6366f1" : "#191970"} />
         </TouchableOpacity>
       </View>
 

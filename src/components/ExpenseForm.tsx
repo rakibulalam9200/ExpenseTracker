@@ -134,7 +134,7 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
   return (
     <>
       <TouchableOpacity
-        className="bg-primary-500 active:bg-primary-600 flex-row items-center justify-center py-3.5 px-6 rounded-full shadow-md flex-1 mr-3"
+        className="bg-primary-600 active:bg-primary-700 flex-row items-center justify-center py-3.5 px-6 rounded-full shadow-md flex-1 mr-3"
         onPress={() => setIsOpen(true)}
       >
         <Plus color="white" size={20} />
@@ -259,7 +259,7 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
             <TouchableOpacity
               className={cn(
                 "py-4 rounded-xl items-center justify-center",
-                title && amount ? "bg-indigo-600 active:bg-indigo-700" : "bg-indigo-300 dark:bg-indigo-900/50"
+                title && amount ? "bg-primary-600 active:bg-primary-500" : "bg-accent-500 dark:bg-accent-900/50"
               )}
               disabled={!title || !amount}
               onPress={handleSubmit}
