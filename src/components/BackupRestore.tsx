@@ -58,7 +58,7 @@ export const BackupRestore: React.FC<BackupRestoreProps> = ({ onRestoreComplete,
         <View className="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-lg mr-3">
           <Download color="#6366f1" size={20} />
         </View>
-        <Text className="text-base text-slate-800 dark:text-slate-200 font-medium flex-1">
+        <Text className="text-base text-slate-800 dark:text-slate-200 font-bold flex-1">
           {t('backupData')}
         </Text>
       </TouchableOpacity>
@@ -70,7 +70,7 @@ export const BackupRestore: React.FC<BackupRestoreProps> = ({ onRestoreComplete,
         <View className="bg-rose-100 dark:bg-rose-900/50 p-2 rounded-lg mr-3">
           <Upload color="#e11d48" size={20} />
         </View>
-        <Text className="text-base text-slate-800 dark:text-slate-200 font-medium flex-1">
+        <Text className="text-base text-slate-800 dark:text-slate-200 font-bold flex-1">
           {t('restoreData')}
         </Text>
       </TouchableOpacity>
