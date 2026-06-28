@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, Alert, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, Alert, Platform, useColorScheme } from 'react-native';
 import { Settings, Plus, Pencil, Trash2, X, ChevronRight } from 'lucide-react-native';
 import { cn } from '../lib/utils';
 import { useI18n } from '../i18n/I18nContext';
 import { ExpenseType, ExpenseSubType } from '../db/schema';
+import { useColorScheme as useNativeWindColorScheme } from 'nativewind';
 
 // Android-safe font that supports Bangla/Bengali script
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
@@ -31,6 +32,9 @@ export function ManageTypes({
   onDeleteSubType,
   renderTrigger,
 }: ManageTypesProps) {
+  const { colorScheme } = useNativeWindColorScheme();
+  const systemColorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark' || ((colorScheme as any) === 'system' && systemColorScheme === 'dark');
   const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -184,10 +188,10 @@ export function ManageTypes({
                     </View>
                     <View className="flex-row">
                       <TouchableOpacity
-                        className="p-2 mr-1 rounded-lg bg-primary-50 dark:bg-primary-900/30"
+                        className="p-2 mr-1 rounded-lg bg-primary-100 dark:bg-primary-900/30"
                         onPress={() => handleOpenEdit(et)}
                       >
-                        <Pencil size={16} color="#6366f1" />
+                        <Pencil size={16} color={isDark ?"#6366f1" :"#191970" }/>
                       </TouchableOpacity>
                       <TouchableOpacity
                         className="p-2 rounded-lg bg-rose-50 dark:bg-rose-900/30"
@@ -206,7 +210,7 @@ export function ManageTypes({
                     <Text className="text-sm font-medium text-primary-600 dark:text-primary-400" style={{ fontFamily }}>
                       {t('subTypes')} {subCount > 0 ? `(${subCount})` : ''}
                     </Text>
-                    <ChevronRight size={16} color="#6366f1" />
+                    <ChevronRight size={16} color={isDark ?"#6366f1" :"#191970" } />
                   </TouchableOpacity>
                 </View>
               );
@@ -280,7 +284,7 @@ export function ManageTypes({
                   "flex-1 py-3.5 rounded-xl items-center ml-2",
                   nameEn.trim() && nameBn.trim()
                     ? "bg-primary-600 active:bg-primary-700"
-                    : "bg-primary-300 dark:bg-primary-900/50",
+                    : "bg-accent-500 dark:bg-accent-900/50",
                 )}
                 disabled={!nameEn.trim() || !nameBn.trim()}
                 onPress={handleSave}
@@ -339,10 +343,10 @@ export function ManageTypes({
                   </View>
                   <View className="flex-row">
                     <TouchableOpacity
-                      className="p-2 mr-1 rounded-lg bg-primary-50 dark:bg-primary-900/30"
+                      className="p-2 mr-1 rounded-lg bg-primary-100 dark:bg-primary-900/30"
                       onPress={() => handleOpenEditSubType(st)}
                     >
-                      <Pencil size={16} color="#6366f1" />
+                      <Pencil size={16} color={isDark ?"#6366f1" :"#191970" }/>
                     </TouchableOpacity>
                     <TouchableOpacity
                       className="p-2 rounded-lg bg-rose-50 dark:bg-rose-900/30"
@@ -423,7 +427,7 @@ export function ManageTypes({
                   "flex-1 py-3.5 rounded-xl items-center ml-2",
                   subNameEn.trim() && subNameBn.trim()
                     ? "bg-primary-600 active:bg-primary-700"
-                    : "bg-primary-300 dark:bg-primary-900/50",
+                    : "bg-accent-500 dark:bg-accent-900/50",
                 )}
                 disabled={!subNameEn.trim() || !subNameBn.trim()}
                 onPress={handleSaveSubType}

@@ -1,5 +1,12 @@
+/* eslint-disable react/no-unstable-nested-components */
 import React, { useMemo, useState } from 'react';
-import { View, Text, useColorScheme, Platform, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  useColorScheme,
+  Platform,
+  TouchableOpacity,
+} from 'react-native';
 
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
 import { PieChart } from 'react-native-gifted-charts';
@@ -25,7 +32,12 @@ const COLORS = [
   '#64748b', // slate-500
 ];
 
-export function ExpenseChart({ data, subTypeData, expenseTypes, expenseSubTypes }: ExpenseChartProps) {
+export function ExpenseChart({
+  data,
+  subTypeData,
+  expenseTypes,
+  expenseSubTypes,
+}: ExpenseChartProps) {
   const isDark = useColorScheme() === 'dark';
   const { lang, t } = useI18n();
   const [reportVisible, setReportVisible] = useState(false);
@@ -42,6 +54,7 @@ export function ExpenseChart({ data, subTypeData, expenseTypes, expenseSubTypes 
       color: COLORS[index % COLORS.length],
       focused: index === 0,
     }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, lang, expenseTypes]);
 
   const totalExpense = useMemo(() => {
@@ -60,7 +73,7 @@ export function ExpenseChart({ data, subTypeData, expenseTypes, expenseSubTypes 
 
   return (
     <View className="bg-white dark:bg-slate-800 rounded-3xl p-6 items-center border border-slate-100 dark:border-slate-700 my-4 shadow-sm">
-      <View className='flex-row justify-between w-full items-center'>
+      <View className="flex-row justify-between w-full items-center">
         <Text className="text-lg font-bold text-primary-800 dark:text-white mb-6 self-start">
           {t('expenseBreakdown')}
         </Text>
@@ -70,7 +83,6 @@ export function ExpenseChart({ data, subTypeData, expenseTypes, expenseSubTypes 
           </Text>
         </TouchableOpacity>
       </View>
-
 
       <PieChart
         data={chartData}
@@ -95,14 +107,19 @@ export function ExpenseChart({ data, subTypeData, expenseTypes, expenseSubTypes 
       />
 
       <View className="flex-row flex-wrap justify-center mt-8 w-full">
-        {chartData.map((item) => (
+        {chartData.map(item => (
           <View key={item.text} className="flex-row items-center w-[45%] mb-3">
             <View
               style={{ backgroundColor: item.color }}
               className="w-3 h-3 rounded-full mr-2"
             />
             <View className="flex-1">
-              <Text className="text-sm text-slate-700 dark:text-slate-300" numberOfLines={1} style={{ fontFamily, fontWeight: '500' }}>
+              <Text
+                className="text-sm text-slate-700 dark:text-slate-300"
+                numberOfLines={1}
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={{ fontFamily, fontWeight: '500' }}
+              >
                 {item.text}
               </Text>
               <Text className="text-xs text-slate-500 dark:text-slate-400 font-bold mt-0.5">
@@ -113,11 +130,11 @@ export function ExpenseChart({ data, subTypeData, expenseTypes, expenseSubTypes 
           </View>
         ))}
       </View>
-      
-      <ReportModal 
-        visible={reportVisible} 
-        onClose={() => setReportVisible(false)} 
-        chartData={chartData} 
+
+      <ReportModal
+        visible={reportVisible}
+        onClose={() => setReportVisible(false)}
+        chartData={chartData}
         totalExpense={totalExpense}
         subTypeData={subTypeData}
         expenseTypes={expenseTypes}

@@ -1,6 +1,6 @@
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { Platform } from 'react-native';
-import { pick, types } from '@react-native-documents/picker';
+import { pick, types, isErrorWithCode, errorCodes } from '@react-native-documents/picker';
 import {
   getAllExpenses,
   getAllExpenseTypes,
@@ -9,7 +9,6 @@ import {
   importExpensesBatch,
   importExpenseTypesBatch,
   importExpenseSubTypesBatch,
-  seedDefaultTypes
 } from './database';
 
 export const exportData = async (): Promise<string | null> => {
@@ -66,10 +65,11 @@ export const exportData = async (): Promise<string | null> => {
 export const importData = async (): Promise<boolean> => {
   try {
     const [res] = await pick({
-      type: [types.allFiles],
+      type: [types.json],
     });
 
     if (!res || !res.uri) return false;
+
 
     // On Android, the picker returns a content:// URI.
     // Use React Native's fetch API which natively handles content:// URIs.
@@ -101,7 +101,7 @@ export const importData = async (): Promise<boolean> => {
       return false;
     }
   } catch (err) {
-    if (isCancel(err)) {
+    if (isErrorWithCode(err) && err.code === errorCodes.OPERATION_CANCELED) {
       console.log('User cancelled picking backup file');
     } else {
       console.error('Restore failed:', err);

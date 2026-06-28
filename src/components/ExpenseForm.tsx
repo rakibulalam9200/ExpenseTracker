@@ -1,8 +1,24 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Modal,
+  Platform,
+  KeyboardAvoidingView,
+  Pressable,
+  Keyboard,
+} from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import { format, parseISO } from 'date-fns';
-import { Plus, X, Calendar as CalendarIcon, ChevronDown } from 'lucide-react-native';
+import {
+  Plus,
+  X,
+  Calendar as CalendarIcon,
+  ChevronDown,
+} from 'lucide-react-native';
 import { cn } from '../lib/utils';
 import { useI18n } from '../i18n/I18nContext';
 import { Expense, ExpenseType, ExpenseSubType } from '../db/schema';
@@ -11,7 +27,14 @@ import { Expense, ExpenseType, ExpenseSubType } from '../db/schema';
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
 
 interface ExpenseFormProps {
-  onSubmit: (expense: { title: string; amount: number; date: string; type: string; sub_type?: string; description?: string }) => void;
+  onSubmit: (expense: {
+    title: string;
+    amount: number;
+    date: string;
+    type: string;
+    sub_type?: string;
+    description?: string;
+  }) => void;
   onUpdate?: (expense: Expense) => void;
   editingExpense?: Expense | null;
   onCancelEdit?: () => void;
@@ -19,11 +42,19 @@ interface ExpenseFormProps {
   expenseSubTypes: ExpenseSubType[];
 }
 
-export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, expenseTypes, expenseSubTypes }: ExpenseFormProps) {
+export function ExpenseForm({
+  onSubmit,
+  onUpdate,
+  editingExpense,
+  onCancelEdit,
+  expenseTypes,
+  expenseSubTypes,
+}: ExpenseFormProps) {
   const { lang, t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
 
-  const defaultTypeId = expenseTypes.length > 0 ? expenseTypes[0].id.toString() : '';
+  const defaultTypeId =
+    expenseTypes.length > 0 ? expenseTypes[0].id.toString() : '';
 
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
@@ -93,7 +124,9 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
       return;
     }
 
-    console.log(title, amount, type, subType, description, "type");
+    Keyboard.dismiss();
+
+    console.log(title, amount, type, subType, description, 'type');
 
     if (isEditing && onUpdate && editingExpense) {
       onUpdate({
@@ -122,13 +155,19 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
   // Resolve selected type label from DB
   const selectedType = expenseTypes.find(et => et.id.toString() === type);
   const selectedTypeLabel = selectedType
-    ? (lang === 'bn' ? selectedType.name_bn : selectedType.name_en)
+    ? lang === 'bn'
+      ? selectedType.name_bn
+      : selectedType.name_en
     : type;
 
   // Resolve selected sub-type label
-  const selectedSubType = expenseSubTypes.find(st => st.id.toString() === subType);
+  const selectedSubType = expenseSubTypes.find(
+    st => st.id.toString() === subType,
+  );
   const selectedSubTypeLabel = selectedSubType
-    ? (lang === 'bn' ? selectedSubType.name_bn : selectedSubType.name_en)
+    ? lang === 'bn'
+      ? selectedSubType.name_bn
+      : selectedSubType.name_en
     : '';
 
   return (
@@ -138,138 +177,178 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
         onPress={() => setIsOpen(true)}
       >
         <Plus color="white" size={20} />
-        <Text className="text-white font-bold text-base ml-2">{t('addExpense')}</Text>
+        <Text className="text-white font-bold text-base ml-2">
+          {t('addExpense')}
+        </Text>
       </TouchableOpacity>
 
-      <Modal visible={isOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
-        <View className="flex-1 bg-white dark:bg-slate-900">
-          <View className="flex-row justify-between items-center p-5 border-b border-slate-100 dark:border-slate-800">
-            <Text className="text-xl font-bold text-slate-900 dark:text-white">
-              {isEditing ? t('editExpense') : t('newExpense')}
-            </Text>
-            <TouchableOpacity onPress={handleClose} className="p-2 -mr-2">
-              <X color="#94a3b8" size={24} />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView className="flex-1 p-5" keyboardShouldPersistTaps="handled">
-            <View className="mb-5">
-              <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t('amount')} *
+      <Modal
+        visible={isOpen}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={handleClose}
+      >
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        >
+          <View className="flex-1 bg-white dark:bg-slate-900">
+            <View className="flex-row justify-between items-center p-5 border-b border-slate-100 dark:border-slate-800">
+              <Text className="text-xl font-bold text-slate-900 dark:text-white">
+                {isEditing ? t('editExpense') : t('newExpense')}
               </Text>
-              <TextInput
-                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 text-lg text-slate-900 dark:text-white"
-                placeholder={t('amountPlaceholder')}
-                placeholderTextColor="#94a3b8"
-                keyboardType="decimal-pad"
-                value={amount}
-                onChangeText={setAmount}
-                style={{ fontFamily }}
-              />
+              <TouchableOpacity onPress={handleClose} className="p-2 -mr-2">
+                <X color="#94a3b8" size={24} />
+              </TouchableOpacity>
             </View>
 
-            <View className="mb-5">
-              <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t('title')} *
-              </Text>
-              <TextInput
-                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 text-base text-slate-900 dark:text-white"
-                placeholder={t('titlePlaceholder')}
-                placeholderTextColor="#94a3b8"
-                value={title}
-                onChangeText={setTitle}
-                style={{ fontFamily }}
-              />
-            </View>
-
-            <View className="flex-row space-x-4 mb-5">
-              <View className="flex-1 mr-2">
-                <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  {t('date')} *
-                </Text>
-                <TouchableOpacity
-                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 flex-row items-center justify-between"
-                  onPress={() => setShowDatePicker(true)}
-                >
-                  <Text className="text-base text-slate-900 dark:text-white">{format(date, 'MMM dd, yyyy')}</Text>
-                  <CalendarIcon size={18} color="#94a3b8" />
-                </TouchableOpacity>
-              </View>
-
-              <View className="flex-1 ml-2">
-                <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  {t('type')} *
-                </Text>
-                <TouchableOpacity
-                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 flex-row items-center justify-between"
-                  onPress={() => setShowTypePicker(true)}
-                >
-                  <Text className="text-base text-slate-900 dark:text-white" numberOfLines={1} style={{ fontFamily }}>
-                    {selectedTypeLabel}
-                  </Text>
-                  <ChevronDown size={18} color="#94a3b8" />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Sub-Type Picker — only shows when selected type has sub-types */}
-            {availableSubTypes.length > 0 && (
+            <ScrollView
+              className="flex-1 p-5"
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
+            >
               <View className="mb-5">
                 <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  {t('subType')}
+                  {t('amount')} *
                 </Text>
-                <TouchableOpacity
-                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 flex-row items-center justify-between"
-                  onPress={() => setShowSubTypePicker(true)}
-                >
-                  <Text
-                    className={cn(
-                      "text-base",
-                      selectedSubTypeLabel
-                        ? "text-slate-900 dark:text-white"
-                        : "text-slate-400 dark:text-slate-500"
-                    )}
-                    numberOfLines={1}
-                    style={{ fontFamily }}
-                  >
-                    {selectedSubTypeLabel || t('selectSubType')}
-                  </Text>
-                  <ChevronDown size={18} color="#94a3b8" />
-                </TouchableOpacity>
+                <TextInput
+                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 text-lg text-slate-900 dark:text-white"
+                  placeholder={t('amountPlaceholder')}
+                  placeholderTextColor="#94a3b8"
+                  keyboardType="decimal-pad"
+                  value={amount}
+                  onChangeText={setAmount}
+                  style={{ fontFamily }}
+                />
               </View>
-            )}
 
-            <View className="mb-8">
-              <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t('descriptionOptional')}
-              </Text>
-              <TextInput
-                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 text-base text-slate-900 dark:text-white"
-                placeholder={t('descriptionPlaceholder')}
-                placeholderTextColor="#94a3b8"
-                multiline
-                numberOfLines={3}
-                textAlignVertical="top"
-                value={description}
-                onChangeText={setDescription}
-                style={{ fontFamily }}
-              />
-            </View>
+              <View className="mb-5">
+                <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  {t('title')} *
+                </Text>
+                <TextInput
+                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 text-base text-slate-900 dark:text-white"
+                  placeholder={t('titlePlaceholder')}
+                  placeholderTextColor="#94a3b8"
+                  value={title}
+                  onChangeText={setTitle}
+                  style={{ fontFamily }}
+                />
+              </View>
 
-            <TouchableOpacity
-              className={cn(
-                "py-4 rounded-xl items-center justify-center",
-                title && amount ? "bg-primary-600 active:bg-primary-500" : "bg-accent-500 dark:bg-accent-900/50"
+              <View className="flex-row space-x-4 mb-5">
+                <View className="flex-1 mr-2">
+                  <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    {t('date')} *
+                  </Text>
+                  <TouchableOpacity
+                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 flex-row items-center justify-between"
+                    onPress={() => setShowDatePicker(true)}
+                  >
+                    <Text className="text-base text-slate-900 dark:text-white">
+                      {format(date, 'MMM dd, yyyy')}
+                    </Text>
+                    <CalendarIcon size={18} color="#94a3b8" />
+                  </TouchableOpacity>
+                </View>
+
+                <View className="flex-1 ml-2">
+                  <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    {t('type')} *
+                  </Text>
+                  <TouchableOpacity
+                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 flex-row items-center justify-between"
+                    onPress={() => setShowTypePicker(true)}
+                  >
+                    <Text
+                      className="text-base text-slate-900 dark:text-white"
+                      numberOfLines={1}
+                      style={{ fontFamily }}
+                    >
+                      {selectedTypeLabel}
+                    </Text>
+                    <ChevronDown size={18} color="#94a3b8" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Sub-Type Picker — only shows when selected type has sub-types */}
+              {availableSubTypes.length > 0 && (
+                <View className="mb-5">
+                  <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    {t('subType')}
+                  </Text>
+                  <TouchableOpacity
+                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 flex-row items-center justify-between"
+                    onPress={() => setShowSubTypePicker(true)}
+                  >
+                    <Text
+                      className={cn(
+                        'text-base',
+                        selectedSubTypeLabel
+                          ? 'text-slate-900 dark:text-white'
+                          : 'text-slate-400 dark:text-slate-500',
+                      )}
+                      numberOfLines={1}
+                      style={{ fontFamily }}
+                    >
+                      {selectedSubTypeLabel || t('selectSubType')}
+                    </Text>
+                    <ChevronDown size={18} color="#94a3b8" />
+                  </TouchableOpacity>
+                </View>
               )}
-              disabled={!title || !amount}
-              onPress={handleSubmit}
+
+              <View className="mb-8">
+                <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  {t('descriptionOptional')}
+                </Text>
+                <TextInput
+                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 text-base text-slate-900 dark:text-white"
+                  placeholder={t('descriptionPlaceholder')}
+                  placeholderTextColor="#94a3b8"
+                  multiline
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                  value={description}
+                  onChangeText={setDescription}
+                  style={{ fontFamily }}
+                />
+              </View>
+            </ScrollView>
+            <Pressable
+              className={cn(
+                'mx-4 py-4 mb-2 rounded-xl items-center justify-center',
+                title && amount
+                  ? 'bg-primary-600 active:bg-primary-700'
+                  : 'bg-accent-500 dark:bg-accent-900/50',
+              )}
+              style={({ pressed }) => ({
+                marginHorizontal: 16,
+                marginBottom: 16,
+                opacity: pressed ? 0.7 : 1,
+              })}
+              onTouchEnd={() => {
+                if (title && amount && type) {
+                  Keyboard.dismiss();
+                  handleSubmit();
+                }
+              }}
             >
-              <Text className={cn("font-bold text-lg", title && amount ? "text-white" : "text-indigo-100 dark:text-indigo-400/50")}>
+              <Text
+                className={cn(
+                  'font-bold text-lg',
+                  title && amount
+                    ? 'text-white'
+                    : 'text-indigo-100 dark:text-indigo-400/50',
+                )}
+              >
                 {isEditing ? t('updateExpense') : t('saveExpense')}
               </Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
+            </Pressable>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       <DatePicker
@@ -277,7 +356,7 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
         open={showDatePicker}
         date={date}
         mode="date"
-        onConfirm={(d) => {
+        onConfirm={d => {
           setShowDatePicker(false);
           setDate(d);
         }}
@@ -285,7 +364,12 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
       />
 
       {/* Type Picker Modal */}
-      <Modal visible={showTypePicker} transparent animationType="fade" onRequestClose={() => setShowTypePicker(false)}>
+      <Modal
+        visible={showTypePicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowTypePicker(false)}
+      >
         <TouchableOpacity
           className="flex-1 bg-black/50 justify-end"
           activeOpacity={1}
@@ -294,10 +378,12 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
           <View className="bg-white dark:bg-slate-900 rounded-t-3xl p-5 pb-8 max-h-[70%]">
             <View className="items-center mb-4">
               <View className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mb-4" />
-              <Text className="text-xl font-bold text-slate-900 dark:text-white">{t('selectCategory')}</Text>
+              <Text className="text-xl font-bold text-slate-900 dark:text-white">
+                {t('selectCategory')}
+              </Text>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
-              {expenseTypes.map((et) => {
+              {expenseTypes.map(et => {
                 const isSelected = type === et.id.toString();
                 const label = lang === 'bn' ? et.name_bn : et.name_en;
                 const secondaryLabel = lang === 'bn' ? et.name_en : et.name_bn;
@@ -306,8 +392,10 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
                   <TouchableOpacity
                     key={et.id}
                     className={cn(
-                      "py-4 px-5 rounded-xl mb-2",
-                      isSelected ? "bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800" : ""
+                      'py-4 px-5 rounded-xl mb-2',
+                      isSelected
+                        ? 'bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800'
+                        : '',
                     )}
                     onPress={() => {
                       setType(et.id.toString());
@@ -316,14 +404,19 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
                   >
                     <Text
                       className={cn(
-                        "text-lg",
-                        isSelected ? "text-indigo-700 dark:text-indigo-400 font-bold" : "text-slate-700 dark:text-slate-300"
+                        'text-lg',
+                        isSelected
+                          ? 'text-indigo-700 dark:text-indigo-400 font-bold'
+                          : 'text-slate-700 dark:text-slate-300',
                       )}
                       style={{ fontFamily }}
                     >
                       {label}
                     </Text>
-                    <Text className="text-xs text-slate-400 dark:text-slate-500 mt-0.5" style={{ fontFamily }}>
+                    <Text
+                      className="text-xs text-slate-400 dark:text-slate-500 mt-0.5"
+                      style={{ fontFamily }}
+                    >
                       {secondaryLabel}
                     </Text>
                   </TouchableOpacity>
@@ -335,7 +428,12 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
       </Modal>
 
       {/* Sub-Type Picker Modal */}
-      <Modal visible={showSubTypePicker} transparent animationType="fade" onRequestClose={() => setShowSubTypePicker(false)}>
+      <Modal
+        visible={showSubTypePicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSubTypePicker(false)}
+      >
         <TouchableOpacity
           className="flex-1 bg-black/50 justify-end"
           activeOpacity={1}
@@ -344,14 +442,18 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
           <View className="bg-white dark:bg-slate-900 rounded-t-3xl p-5 pb-8 max-h-[70%]">
             <View className="items-center mb-4">
               <View className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mb-4" />
-              <Text className="text-xl font-bold text-slate-900 dark:text-white">{t('selectSubType')}</Text>
+              <Text className="text-xl font-bold text-slate-900 dark:text-white">
+                {t('selectSubType')}
+              </Text>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
               {/* "None" option to clear sub-type */}
               <TouchableOpacity
                 className={cn(
-                  "py-4 px-5 rounded-xl mb-2",
-                  !subType ? "bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800" : ""
+                  'py-4 px-5 rounded-xl mb-2',
+                  !subType
+                    ? 'bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800'
+                    : '',
                 )}
                 onPress={() => {
                   setSubType('');
@@ -360,8 +462,10 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
               >
                 <Text
                   className={cn(
-                    "text-lg",
-                    !subType ? "text-indigo-700 dark:text-indigo-400 font-bold" : "text-slate-500 dark:text-slate-400"
+                    'text-lg',
+                    !subType
+                      ? 'text-indigo-700 dark:text-indigo-400 font-bold'
+                      : 'text-slate-500 dark:text-slate-400',
                   )}
                   style={{ fontFamily }}
                 >
@@ -369,7 +473,7 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
                 </Text>
               </TouchableOpacity>
 
-              {availableSubTypes.map((st) => {
+              {availableSubTypes.map(st => {
                 const isSelected = subType === st.id.toString();
                 const label = lang === 'bn' ? st.name_bn : st.name_en;
                 const secondaryLabel = lang === 'bn' ? st.name_en : st.name_bn;
@@ -378,8 +482,10 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
                   <TouchableOpacity
                     key={st.id}
                     className={cn(
-                      "py-4 px-5 rounded-xl mb-2",
-                      isSelected ? "bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800" : ""
+                      'py-4 px-5 rounded-xl mb-2',
+                      isSelected
+                        ? 'bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800'
+                        : '',
                     )}
                     onPress={() => {
                       setSubType(st.id.toString());
@@ -388,14 +494,19 @@ export function ExpenseForm({ onSubmit, onUpdate, editingExpense, onCancelEdit, 
                   >
                     <Text
                       className={cn(
-                        "text-lg",
-                        isSelected ? "text-indigo-700 dark:text-indigo-400 font-bold" : "text-slate-700 dark:text-slate-300"
+                        'text-lg',
+                        isSelected
+                          ? 'text-indigo-700 dark:text-indigo-400 font-bold'
+                          : 'text-slate-700 dark:text-slate-300',
                       )}
                       style={{ fontFamily }}
                     >
                       {label}
                     </Text>
-                    <Text className="text-xs text-slate-400 dark:text-slate-500 mt-0.5" style={{ fontFamily }}>
+                    <Text
+                      className="text-xs text-slate-400 dark:text-slate-500 mt-0.5"
+                      style={{ fontFamily }}
+                    >
                       {secondaryLabel}
                     </Text>
                   </TouchableOpacity>

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-shadow */
+/* eslint-disable react-native/no-inline-styles */
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
@@ -10,7 +12,10 @@ import {
   TextInput,
 } from 'react-native';
 import { Moon, Settings, Sun, Search, X } from 'lucide-react-native';
-import { useColorScheme as useNativeWindColorScheme, cssInterop } from 'nativewind';
+import {
+  useColorScheme as useNativeWindColorScheme,
+  cssInterop,
+} from 'nativewind';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native';
 import { HomeScreenProps } from '../navigation/types';
@@ -38,7 +43,7 @@ import { useDebounce } from '../hooks/useDebounce';
 cssInterop(SafeAreaView, { className: 'style' });
 
 // Enable className support for Lucide icons
-[Moon, Settings, Sun, Search, X].forEach((icon) => {
+[Moon, Settings, Sun, Search, X].forEach(icon => {
   cssInterop(icon, {
     className: {
       target: 'style',
@@ -54,7 +59,9 @@ const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
 export function HomeScreen({ navigation }: HomeScreenProps) {
   const { colorScheme, toggleColorScheme } = useNativeWindColorScheme();
   const systemColorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark' || ((colorScheme as any) === 'system' && systemColorScheme === 'dark');
+  const isDark =
+    colorScheme === 'dark' ||
+    ((colorScheme as any) === 'system' && systemColorScheme === 'dark');
   const { lang, toggleLanguage, t } = useI18n();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -82,11 +89,21 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
     const matchesTypeEn = type?.name_en.toLowerCase().includes(query) || false;
     const matchesTypeBn = type?.name_bn.toLowerCase().includes(query) || false;
 
-    const subType = expenseSubTypes.find(st => st.id.toString() === expense.sub_type);
-    const matchesSubTypeEn = subType?.name_en.toLowerCase().includes(query) || false;
-    const matchesSubTypeBn = subType?.name_bn.toLowerCase().includes(query) || false;
+    const subType = expenseSubTypes.find(
+      st => st.id.toString() === expense.sub_type,
+    );
+    const matchesSubTypeEn =
+      subType?.name_en.toLowerCase().includes(query) || false;
+    const matchesSubTypeBn =
+      subType?.name_bn.toLowerCase().includes(query) || false;
 
-    return matchesTitle || matchesTypeEn || matchesTypeBn || matchesSubTypeEn || matchesSubTypeBn;
+    return (
+      matchesTitle ||
+      matchesTypeEn ||
+      matchesTypeBn ||
+      matchesSubTypeEn ||
+      matchesSubTypeBn
+    );
   });
 
   const loadData = useCallback(() => {
@@ -122,7 +139,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
       if (isDBReady) {
         loadData();
       }
-    }, [isDBReady, loadData])
+    }, [isDBReady, loadData]),
   );
 
   const handleAddExpense = (expenseData: Omit<Expense, 'id'>) => {
@@ -179,8 +196,8 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         />
       </View>
 
-      <View className='flex-col mb-4'>
-        <View className='flex-row justify-between items-center'>
+      <View className="flex-col mb-4">
+        <View className="flex-row justify-between items-center">
           <View className="flex-1 flex-row items-center bg-white dark:bg-slate-800 border border-slate-200 py-2 dark:border-slate-700 rounded-full px-4 mr-3">
             <Search size={18} color="#94a3b8" />
             <TextInput
@@ -202,19 +219,28 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         </View>
 
         {isFiltered && (
-          <View className="flex-row items-center mt-3 ml-1">
+          <View className="flex-row items-center mt-3 ml-1 justify-end">
             <View className="bg-primary-100 dark:bg-primary-900/40 border border-primary-200 dark:border-primary-700 rounded-full px-4 py-2 flex-row items-center">
               <Text className="text-sm font-semibold text-primary-700 dark:text-primary-300 mr-2">
-                {`${format(filterStart, 'MMM dd')} - ${format(filterEnd, 'MMM dd')}`}
+                {`${format(filterStart, 'MMM dd')} - ${format(
+                  filterEnd,
+                  'MMM dd',
+                )}`}
               </Text>
-              <TouchableOpacity onPress={handleClearFilter} className="p-1 rounded-full bg-primary-200 dark:bg-primary-800">
-                <X size={14} color="#4338ca" />
-              </TouchableOpacity>
             </View>
+            <TouchableOpacity
+              onPress={handleClearFilter}
+              className="p-1 rounded-full ml-2 bg-primary-600 dark:bg-primary-300"
+            >
+              <X size={20} color="#ffffff" />
+            </TouchableOpacity>
           </View>
         )}
       </View>
-      <Text className="text-xl font-bold text-slate-800 dark:text-white mt-4 mb-2" style={{ fontFamily }}>
+      <Text
+        className="text-xl font-bold text-slate-800 dark:text-white mt-4 mb-2"
+        style={{ fontFamily }}
+      >
         {t('recentExpenses')}
       </Text>
     </View>
@@ -230,11 +256,17 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
       <View className="flex-row justify-between items-center px-4 py-2 z-10">
         <View className="flex-row items-center justify-center">
           <Logo width={50} height={50} />
-          <View className='px-3'>
-            <Text className="text-2xl font-bold text-primary-600 dark:text-primary-400" style={{ fontFamily }}>
+          <View className="px-3">
+            <Text
+              className="text-2xl font-bold text-primary-600 dark:text-primary-400"
+              style={{ fontFamily }}
+            >
               {t('appName')}
             </Text>
-            <Text className="text-xs text-slate-500 dark:text-slate-400 font-medium" style={{ fontFamily }}>
+            <Text
+              className="text-xs text-slate-500 dark:text-slate-400 font-medium"
+              style={{ fontFamily }}
+            >
               {t('offlineFirst')}
             </Text>
           </View>
@@ -245,7 +277,10 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
             onPress={toggleLanguage}
             className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full mr-2"
           >
-            <Text className="text-sm font-bold text-primary-600 dark:text-primary-400" style={{ fontFamily }}>
+            <Text
+              className="text-sm font-bold text-primary-600 dark:text-primary-400"
+              style={{ fontFamily }}
+            >
               {lang === 'en' ? 'বাং' : 'EN'}
             </Text>
           </TouchableOpacity>
@@ -262,10 +297,15 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate('Settings', { filterStart: filterStart.toISOString(), filterEnd: filterEnd.toISOString() })}
+            onPress={() =>
+              navigation.navigate('Settings', {
+                filterStart: filterStart.toISOString(),
+                filterEnd: filterEnd.toISOString(),
+              })
+            }
             className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"
           >
-            <Settings color={isDark ? "#6366f1" : "#191970"} size={20} />
+            <Settings color={isDark ? '#6366f1' : '#191970'} size={20} />
           </TouchableOpacity>
         </View>
       </View>
@@ -276,9 +316,9 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         ) : (
           <FlatList
             data={filteredExpenses}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={item => item.id.toString()}
             renderItem={({ item }) => (
-               <ExpenseCard
+              <ExpenseCard
                 expense={item}
                 expenseTypes={expenseTypes}
                 expenseSubTypes={expenseSubTypes}
@@ -289,7 +329,10 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
             ListHeaderComponent={renderHeader()}
             ListEmptyComponent={
               <View className="items-center justify-center py-10">
-                <Text className="text-slate-400 dark:text-slate-500 text-lg" style={{ fontFamily }}>
+                <Text
+                  className="text-slate-400 dark:text-slate-500 text-lg"
+                  style={{ fontFamily }}
+                >
                   {t('noExpenses')}
                 </Text>
               </View>

@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import {
   View,
@@ -8,7 +9,6 @@ import {
   Platform,
   ScrollView,
   Alert,
-  Dimensions,
 } from 'react-native';
 import ViewShot from 'react-native-view-shot';
 import { generatePDF } from 'react-native-html-to-pdf';
@@ -21,21 +21,52 @@ import { getMonthlyExpensesForYear } from '../db/database';
 
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
 
-const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const MONTHS_BN = ['জানু', 'ফেব', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টে', 'অক্টো', 'নভে', 'ডিসে'];
+const MONTHS_EN = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+const MONTHS_BN = [
+  'জানু',
+  'ফেব',
+  'মার্চ',
+  'এপ্রিল',
+  'মে',
+  'জুন',
+  'জুলাই',
+  'আগস্ট',
+  'সেপ্টে',
+  'অক্টো',
+  'নভে',
+  'ডিসে',
+];
 
 interface YearlyReportModalProps {
   visible: boolean;
   onClose: () => void;
 }
 
-export function YearlyReportModal({ visible, onClose }: YearlyReportModalProps) {
+export function YearlyReportModal({
+  visible,
+  onClose,
+}: YearlyReportModalProps) {
   const isDark = useColorScheme() === 'dark';
   const { lang, t } = useI18n();
   const viewShotRef = useRef<any>(null);
 
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [monthlyData, setMonthlyData] = useState<{ month: string; total: number }[]>([]);
+  const [monthlyData, setMonthlyData] = useState<
+    { month: string; total: number }[]
+  >([]);
 
   useEffect(() => {
     if (visible) {
@@ -51,14 +82,23 @@ export function YearlyReportModal({ visible, onClose }: YearlyReportModalProps) 
     let maxVal = 0;
 
     const CHART_COLORS = [
-      '#ef4444', '#f97316', '#f59e0b', '#eab308',
-      '#84cc16', '#22c55e', '#10b981', '#06b6d4',
-      '#3b82f6', '#6366f1', '#a855f7', '#ec4899'
+      '#ef4444',
+      '#f97316',
+      '#f59e0b',
+      '#eab308',
+      '#84cc16',
+      '#22c55e',
+      '#10b981',
+      '#06b6d4',
+      '#3b82f6',
+      '#6366f1',
+      '#a855f7',
+      '#ec4899',
     ];
 
     for (let i = 1; i <= 12; i++) {
       const monthStr = i.toString().padStart(2, '0');
-      const found = monthlyData.find((d) => d.month === monthStr);
+      const found = monthlyData.find(d => d.month === monthStr);
       const val = found ? found.total : 0;
       if (val > maxVal) maxVal = val;
 
@@ -66,16 +106,27 @@ export function YearlyReportModal({ visible, onClose }: YearlyReportModalProps) 
         value: val,
         label: months[i - 1],
         frontColor: CHART_COLORS[i - 1],
-        topLabelComponent: val > 0 ? () => (
-          <Text style={{ color: isDark ? '#f1f5f9' : '#0f172a', fontSize: 9, fontWeight: 'bold', marginBottom: 5 }}>
-            {val}
-          </Text>
-        ) : undefined,
+        topLabelComponent:
+          val > 0
+            ? () => (
+                <Text
+                   
+                  style={{
+                    color: isDark ? '#f1f5f9' : '#0f172a',
+                    fontSize: 9,
+                    fontWeight: 'bold',
+                    marginBottom: 5,
+                  }}
+                >
+                  {val}
+                </Text>
+              )
+            : undefined,
         labelTextStyle: {
           color: isDark ? '#94a3b8' : '#64748b',
           fontFamily,
           fontSize: 11,
-          fontWeight: '600' as '600'
+          fontWeight: '600' as '600',
         },
       });
     }
@@ -111,7 +162,9 @@ export function YearlyReportModal({ visible, onClose }: YearlyReportModalProps) 
 
     // Add empty state to table if no expenses
     if (totalExpense === 0) {
-      tableRows += `<tr><td colspan="2" style="text-align: center; padding: 20px; color: #64748b;">${t('noChartData') || 'No expenses for this year.'}</td></tr>`;
+      tableRows += `<tr><td colspan="2" style="text-align: center; padding: 20px; color: #64748b;">${
+        t('noChartData') || 'No expenses for this year.'
+      }</td></tr>`;
     }
 
     return `
@@ -152,7 +205,9 @@ export function YearlyReportModal({ visible, onClose }: YearlyReportModalProps) 
             <tfoot>
               <tr>
                 <td class="total-label total-row">${t('total')}</td>
-                <td class="total-row" style="text-align: right;">&#2547;${totalExpense.toFixed(2)}</td>
+                <td class="total-row" style="text-align: right;">&#2547;${totalExpense.toFixed(
+                  2,
+                )}</td>
               </tr>
             </tfoot>
           </table>
@@ -214,7 +269,9 @@ export function YearlyReportModal({ visible, onClose }: YearlyReportModalProps) 
       console.error('Error generating PDF:', error);
       Alert.alert(
         t('error') || 'Error',
-        `Failed to generate PDF: ${error?.message || 'Unknown error'}. Please try again.`,
+        `Failed to generate PDF: ${
+          error?.message || 'Unknown error'
+        }. Please try again.`,
       );
     }
   };
@@ -232,8 +289,8 @@ export function YearlyReportModal({ visible, onClose }: YearlyReportModalProps) 
           <Text className="text-xl font-bold text-slate-800 dark:text-white">
             {t('yearlyReport')}
           </Text>
-          <TouchableOpacity onPress={onClose} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full">
-            <Text className="text-sm font-medium text-slate-600 dark:text-slate-300">{t('close')}</Text>
+          <TouchableOpacity onPress={onClose} className="p-2 -mr-2">
+            <X color="#94a3b8" size={24} />
           </TouchableOpacity>
         </View>
 
@@ -258,9 +315,19 @@ export function YearlyReportModal({ visible, onClose }: YearlyReportModalProps) 
           </View>
 
           {/* Chart Section */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
-            <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1, result: 'base64' }}>
-              <View className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-slate-700" style={{ minWidth: 380 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="mb-6"
+          >
+            <ViewShot
+              ref={viewShotRef}
+              options={{ format: 'png', quality: 1, result: 'base64' }}
+            >
+              <View
+                className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-slate-700"
+                style={{ minWidth: 380 }}
+              >
                 {totalExpense > 0 ? (
                   <View className="">
                     <BarChart
@@ -272,7 +339,11 @@ export function YearlyReportModal({ visible, onClose }: YearlyReportModalProps) 
                       yAxisThickness={1}
                       xAxisColor={isDark ? '#334155' : '#cbd5e1'}
                       yAxisColor={isDark ? '#334155' : '#cbd5e1'}
-                      yAxisTextStyle={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: 10 }}
+                       
+                      yAxisTextStyle={{
+                        color: isDark ? '#94a3b8' : '#64748b',
+                        fontSize: 10,
+                      }}
                       noOfSections={5}
                       maxValue={chartData.maxValue}
                       hideRules
@@ -309,8 +380,14 @@ export function YearlyReportModal({ visible, onClose }: YearlyReportModalProps) 
             {chartData.data.map((item, idx) => {
               if (item.value === 0) return null;
               return (
-                <View key={idx} className="flex-row justify-between items-center py-3 border-b border-slate-50 dark:border-slate-700/50">
-                  <Text className="text-base text-slate-700 dark:text-slate-300 font-medium" style={{ fontFamily }}>
+                <View
+                  key={idx}
+                  className="flex-row justify-between items-center py-3 border-b border-slate-50 dark:border-slate-700/50"
+                >
+                  <Text
+                    className="text-base text-slate-700 dark:text-slate-300 font-medium"
+                    style={{ fontFamily }}
+                  >
                     {item.label}
                   </Text>
                   <Text className="text-base font-bold text-slate-800 dark:text-white">
@@ -320,7 +397,9 @@ export function YearlyReportModal({ visible, onClose }: YearlyReportModalProps) 
               );
             })}
             {totalExpense === 0 && (
-              <Text className="text-center text-slate-400 py-4">{t('noChartData')}</Text>
+              <Text className="text-center text-slate-400 py-4">
+                {t('noChartData')}
+              </Text>
             )}
           </View>
         </ScrollView>

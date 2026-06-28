@@ -14,7 +14,7 @@ const I18nContext = createContext<I18nContextType>({
 });
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Language>('bn');
+  const [lang, setLang] = useState<Language>('en');
 
   const toggleLanguage = useCallback(() => {
     setLang(prev => (prev === 'en' ? 'bn' : 'en'));

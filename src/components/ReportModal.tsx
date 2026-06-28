@@ -1,4 +1,5 @@
-import React, { useRef, useMemo } from 'react';
+/* eslint-disable react-native/no-inline-styles */
+import React, { useRef, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,6 +17,7 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import { useI18n } from '../i18n/I18nContext';
 import { PieChart } from 'react-native-gifted-charts';
 import { ExpenseType, ExpenseSubType } from '../db/schema';
+import { X } from 'lucide-react-native';
 
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
 
@@ -29,10 +31,32 @@ interface ReportModalProps {
   expenseSubTypes: ExpenseSubType[];
 }
 
-export function ReportModal({ visible, onClose, chartData, totalExpense, subTypeData, expenseTypes, expenseSubTypes }: ReportModalProps) {
+export function ReportModal({
+  visible,
+  onClose,
+  chartData,
+  totalExpense,
+  subTypeData,
+  expenseTypes,
+  expenseSubTypes,
+}: ReportModalProps) {
   const isDark = useColorScheme() === 'dark';
   const { lang, t } = useI18n();
   const viewShotRef = useRef<any>(null);
+
+  const renderCenterLabel = useCallback(
+    () => (
+      <View className="justify-center items-center">
+        <Text className="text-2xl font-bold text-slate-800 dark:text-white">
+          ৳{totalExpense.toFixed(2)}
+        </Text>
+        <Text className="text-xs text-slate-500 dark:text-slate-400">
+          {t('total')}
+        </Text>
+      </View>
+    ),
+    [totalExpense, t],
+  );
 
   // Build a lookup: typeId -> list of { subTypeName, total }
   const subTypeBreakdown = useMemo(() => {
@@ -43,7 +67,9 @@ export function ReportModal({ visible, onClose, chartData, totalExpense, subType
 
       const st = expenseSubTypes.find(s => s.id.toString() === row.sub_type);
       const name = st
-        ? (lang === 'bn' ? st.name_bn : st.name_en)
+        ? lang === 'bn'
+          ? st.name_bn
+          : st.name_en
         : row.sub_type;
 
       if (!map[row.type]) {
@@ -69,15 +95,17 @@ export function ReportModal({ visible, onClose, chartData, totalExpense, subType
 
   const generateHTML = (base64Image: string) => {
     const tableRows = chartData
-      .map((item) => {
+      .map(item => {
         const typeId = typeIdByLabel[item.text];
-        const subItems = typeId ? (subTypeBreakdown[typeId] || []) : [];
+        const subItems = typeId ? subTypeBreakdown[typeId] || [] : [];
 
         const mainRow = `
         <tr>
           <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; color: #1e293b; font-weight: 500;">
             <div style="display: flex; align-items: center;">
-              <div style="width: 12px; height: 12px; border-radius: 6px; background-color: ${item.color}; margin-right: 8px;"></div>
+              <div style="width: 12px; height: 12px; border-radius: 6px; background-color: ${
+                item.color
+              }; margin-right: 8px;"></div>
               ${item.text}
             </div>
           </td>
@@ -88,7 +116,7 @@ export function ReportModal({ visible, onClose, chartData, totalExpense, subType
 
         const subRows = subItems
           .map(
-            (sub) => `
+            sub => `
         <tr>
           <td style="padding: 8px 12px 8px 40px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-weight: 400; font-size: 14px;">
             ${sub.name}
@@ -96,7 +124,7 @@ export function ReportModal({ visible, onClose, chartData, totalExpense, subType
           <td style="padding: 8px 12px; border-bottom: 1px solid #f1f5f9; text-align: right; color: #64748b; font-weight: 600; font-size: 14px;">
             &#2547;${sub.total.toFixed(2)}
           </td>
-        </tr>`
+        </tr>`,
           )
           .join('');
 
@@ -140,7 +168,9 @@ export function ReportModal({ visible, onClose, chartData, totalExpense, subType
             <tfoot>
               <tr>
                 <td class="total-label total-row">${t('total')}</td>
-                <td class="total-row" style="text-align: right;">&#2547;${totalExpense.toFixed(2)}</td>
+                <td class="total-row" style="text-align: right;">&#2547;${totalExpense.toFixed(
+                  2,
+                )}</td>
               </tr>
             </tfoot>
           </table>
@@ -208,7 +238,9 @@ export function ReportModal({ visible, onClose, chartData, totalExpense, subType
       console.error('Error generating PDF:', error);
       Alert.alert(
         'Error',
-        `Failed to generate PDF: ${error?.message || 'Unknown error'}. Please try again.`,
+        `Failed to generate PDF: ${
+          error?.message || 'Unknown error'
+        }. Please try again.`,
       );
     }
   };
@@ -226,14 +258,20 @@ export function ReportModal({ visible, onClose, chartData, totalExpense, subType
           <Text className="text-xl font-bold text-slate-800 dark:text-white">
             {t('report')}
           </Text>
-          <TouchableOpacity onPress={onClose} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full">
-            <Text className="text-sm font-medium text-slate-600 dark:text-slate-300">{t('close')}</Text>
+          <TouchableOpacity onPress={onClose} className="p-2 -mr-2">
+            <X color="#94a3b8" size={24} />
           </TouchableOpacity>
+          {/* <TouchableOpacity onPress={onClose} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full">
+            <Text className="text-sm font-medium text-slate-600 dark:text-slate-300">{t('close')}</Text>
+          </TouchableOpacity> */}
         </View>
 
         <ScrollView className="flex-1" contentContainerStyle={{ padding: 24 }}>
           {/* Chart Section to capture */}
-          <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1, result: 'base64' }}>
+          <ViewShot
+            ref={viewShotRef}
+            options={{ format: 'png', quality: 1, result: 'base64' }}
+          >
             <View className="bg-white dark:bg-slate-800 rounded-3xl p-6 items-center border border-slate-100 dark:border-slate-700 mb-6">
               <PieChart
                 data={chartData}
@@ -241,27 +279,16 @@ export function ReportModal({ visible, onClose, chartData, totalExpense, subType
                 radius={110}
                 innerRadius={70}
                 innerCircleColor={isDark ? '#1e293b' : '#ffffff'}
-                centerLabelComponent={() => {
-                  return (
-                    <View className="justify-center items-center">
-                      <Text className="text-2xl font-bold text-slate-800 dark:text-white">
-                        ৳{totalExpense.toFixed(2)}
-                      </Text>
-                      <Text className="text-xs text-slate-500 dark:text-slate-400">
-                        {t('total')}
-                      </Text>
-                    </View>
-                  );
-                }}
+                centerLabelComponent={renderCenterLabel}
               />
             </View>
           </ViewShot>
 
           {/* Breakdown List with Sub-Type Details */}
           <View className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-slate-700">
-            {chartData.map((item) => {
+            {chartData.map(item => {
               const typeId = typeIdByLabel[item.text];
-              const subItems = typeId ? (subTypeBreakdown[typeId] || []) : [];
+              const subItems = typeId ? subTypeBreakdown[typeId] || [] : [];
 
               return (
                 <View key={item.text}>
@@ -272,7 +299,10 @@ export function ReportModal({ visible, onClose, chartData, totalExpense, subType
                         style={{ backgroundColor: item.color }}
                         className="w-3 h-3 rounded-full mr-3"
                       />
-                      <Text className="text-base text-slate-700 dark:text-slate-300" style={{ fontFamily, fontWeight: '500' }}>
+                      <Text
+                        className="text-base text-slate-700 dark:text-slate-300"
+                        style={{ fontFamily, fontWeight: '500' }}
+                      >
                         {item.text}
                       </Text>
                     </View>
@@ -289,7 +319,10 @@ export function ReportModal({ visible, onClose, chartData, totalExpense, subType
                     >
                       <View className="flex-row items-center flex-1">
                         <View className="w-2 h-2 rounded-full mr-2 bg-slate-300 dark:bg-slate-600" />
-                        <Text className="text-sm text-slate-500 dark:text-slate-400" style={{ fontFamily }}>
+                        <Text
+                          className="text-sm text-slate-500 dark:text-slate-400"
+                          style={{ fontFamily }}
+                        >
                           {sub.name}
                         </Text>
                       </View>

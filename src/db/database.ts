@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { open } from '@op-engineering/op-sqlite';
 import { Expense, ExpenseType, ExpenseSubType } from './schema';
 import { startOfMonth, endOfMonth, format, parseISO } from 'date-fns';
