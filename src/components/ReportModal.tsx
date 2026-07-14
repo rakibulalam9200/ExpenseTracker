@@ -165,15 +165,12 @@ export function ReportModal({
             <tbody>
               ${tableRows}
             </tbody>
-            <tfoot>
-              <tr>
-                <td class="total-label total-row">${t('total')}</td>
-                <td class="total-row" style="text-align: right;">&#2547;${totalExpense.toFixed(
-                  2,
-                )}</td>
-              </tr>
-            </tfoot>
           </table>
+
+          <div style="display: flex; justify-content: flex-end; align-items: center; padding: 16px 0; border-top: 2px solid #e2e8f0; margin-top: 8px;">
+            <span class="total-row" style="margin-right: 20px;">${t('total')}</span>
+            <span class="total-row">&#2547;${totalExpense.toFixed(2)}</span>
+          </div>
         </body>
       </html>
     `;
@@ -350,7 +347,7 @@ export function ReportModal({
         <View className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex-row">
           <TouchableOpacity
             onPress={() => handleExportPDF('download')}
-            className="flex-1 bg-primary-50 dark:bg-primary-900/30 py-4 rounded-2xl items-center mr-2"
+            className="flex-1 bg-primary-50 dark:bg-slate-600 py-4 rounded-2xl items-center mr-2"
           >
             <Text className="text-primary-600 dark:text-primary-400 font-bold text-base">
               {t('downloadPdf')}
