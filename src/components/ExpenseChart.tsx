@@ -13,6 +13,7 @@ import { PieChart } from 'react-native-gifted-charts';
 import { useI18n } from '../i18n/I18nContext';
 import { ExpenseType, ExpenseSubType } from '../db/schema';
 import { ReportModal } from './ReportModal';
+import { cn } from '../lib/utils';
 
 interface ExpenseChartProps {
   data: { type: string; total: number }[];
@@ -78,7 +79,7 @@ export function ExpenseChart({
           {t('expenseBreakdown')}
         </Text>
         <TouchableOpacity onPress={() => setReportVisible(true)}>
-          <Text className="text-lg font-bold text-primary-600 mb-6 self-end">
+          <Text className="text-lg font-bold text-primary-600 dark:text-slate-500 mb-6 self-end">
             {t('report')}
           </Text>
         </TouchableOpacity>

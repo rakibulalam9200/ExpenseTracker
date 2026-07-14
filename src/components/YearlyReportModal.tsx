@@ -110,7 +110,6 @@ export function YearlyReportModal({
           val > 0
             ? () => (
                 <Text
-                   
                   style={{
                     color: isDark ? '#f1f5f9' : '#0f172a',
                     fontSize: 9,
@@ -339,7 +338,6 @@ export function YearlyReportModal({
                       yAxisThickness={1}
                       xAxisColor={isDark ? '#334155' : '#cbd5e1'}
                       yAxisColor={isDark ? '#334155' : '#cbd5e1'}
-                       
                       yAxisTextStyle={{
                         color: isDark ? '#94a3b8' : '#64748b',
                         fontSize: 10,
@@ -408,7 +406,7 @@ export function YearlyReportModal({
         <View className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex-row">
           <TouchableOpacity
             onPress={() => handleExportPDF('download')}
-            className="flex-1 bg-primary-50 dark:bg-primary-900/30 py-4 rounded-2xl items-center mr-2"
+            className="flex-1 bg-primary-50 dark:bg-slate-600 py-4 rounded-2xl items-center mr-2"
           >
             <Text className="text-primary-600 dark:text-primary-400 font-bold text-base">
               {t('downloadPdf')}
