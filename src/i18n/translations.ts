@@ -85,6 +85,7 @@ export const translations = {
     yearlyReport: 'Yearly Report',
     year: 'Year',
     months: 'Month',
+    thisMonth: 'This Month',
   },
   bn: {
     appName: 'খরচ ট্র্যাকার',
@@ -170,6 +171,7 @@ export const translations = {
     yearlyReport: 'বার্ষিক রিপোর্ট',
     year: 'বছর',
     months: 'মাস',
+    thisMonth: 'এই মাস',
   },
 } as const;
 

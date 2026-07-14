@@ -11,7 +11,14 @@ import {
   Platform,
   TextInput,
 } from 'react-native';
-import { Moon, Settings, Sun, Search, X } from 'lucide-react-native';
+import {
+  Moon,
+  Settings,
+  Sun,
+  Search,
+  X,
+  CalendarDays,
+} from 'lucide-react-native';
 import {
   useColorScheme as useNativeWindColorScheme,
   cssInterop,
@@ -28,6 +35,7 @@ import {
   updateExpense as updateExpenseDB,
   deleteExpense as deleteExpenseDB,
   getExpensesByDateRange,
+  getAllExpenses,
   getAllExpenseTypes,
   getAllExpenseSubTypes,
 } from '../db/database';
@@ -43,7 +51,7 @@ import { useDebounce } from '../hooks/useDebounce';
 cssInterop(SafeAreaView, { className: 'style' });
 
 // Enable className support for Lucide icons
-[Moon, Settings, Sun, Search, X].forEach(icon => {
+[Moon, Settings, Sun, Search, X, CalendarDays].forEach(icon => {
   cssInterop(icon, {
     className: {
       target: 'style',
@@ -76,6 +84,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   const [filterEnd, setFilterEnd] = useState(endOfMonth(now));
   const [isFiltered, setIsFiltered] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [thisMonthOnly, setThisMonthOnly] = useState(false);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
@@ -114,15 +123,28 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
       const subTypes = getAllExpenseSubTypes();
       setExpenseSubTypes(subTypes);
 
-      const start = format(filterStart, 'yyyy-MM-dd');
-      const end = format(filterEnd, 'yyyy-MM-dd');
-
-      const currentExpenses = getExpensesByDateRange(start, end);
-      setExpenses(currentExpenses);
+      if (isFiltered) {
+        // User applied custom date filter
+        const start = format(filterStart, 'yyyy-MM-dd');
+        const end = format(filterEnd, 'yyyy-MM-dd');
+        const currentExpenses = getExpensesByDateRange(start, end);
+        setExpenses(currentExpenses);
+      } else if (thisMonthOnly) {
+        // This Month toggle active
+        const n = new Date();
+        const start = format(startOfMonth(n), 'yyyy-MM-dd');
+        const end = format(endOfMonth(n), 'yyyy-MM-dd');
+        const currentExpenses = getExpensesByDateRange(start, end);
+        setExpenses(currentExpenses);
+      } else {
+        // Default: show all expenses
+        const allExpenses = getAllExpenses();
+        setExpenses(allExpenses);
+      }
     } catch (e) {
       console.error('Failed to load data', e);
     }
-  }, [filterStart, filterEnd]);
+  }, [filterStart, filterEnd, isFiltered, thisMonthOnly]);
 
   useEffect(() => {
     try {
@@ -237,12 +259,37 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
           </View>
         )}
       </View>
-      <Text
-        className="text-xl font-bold text-slate-800 dark:text-white mt-4 mb-2"
-        style={{ fontFamily }}
-      >
-        {t('recentExpenses')}
-      </Text>
+      <View className="flex-row items-center justify-between mt-4 mb-2">
+        <Text
+          className="text-xl font-bold text-slate-800 dark:text-white"
+          style={{ fontFamily }}
+        >
+          {t('recentExpenses')}
+        </Text>
+        <TouchableOpacity
+          onPress={() => setThisMonthOnly(prev => !prev)}
+          className={`flex-row items-center px-3 py-1.5 rounded-full border ${
+            thisMonthOnly
+              ? 'bg-primary-600 dark:bg-primary-500 border-primary-600 dark:border-primary-500'
+              : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+          }`}
+        >
+          <CalendarDays
+            size={15}
+            color={thisMonthOnly ? '#ffffff' : isDark ? '#94a3b8' : '#64748b'}
+          />
+          <Text
+            className={`text-xs font-semibold ml-1.5 ${
+              thisMonthOnly
+                ? 'text-white'
+                : 'text-slate-600 dark:text-slate-400'
+            }`}
+            style={{ fontFamily }}
+          >
+            {t('thisMonth')}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 

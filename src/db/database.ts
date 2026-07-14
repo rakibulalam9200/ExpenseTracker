@@ -93,6 +93,13 @@ export const initDB = () => {
     );
   `);
 
+  db.executeSync(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+  `);
+
   // Migration: add sub_type column to expenses if it doesn't exist
   try {
     db.executeSync('ALTER TABLE expenses ADD COLUMN sub_type TEXT');
@@ -338,10 +345,26 @@ export const importExpenseTypesBatch = (types: ExpenseType[]) => {
 };
 
 export const importExpenseSubTypesBatch = (subTypes: ExpenseSubType[]) => {
+  db.executeSync('DELETE FROM expense_sub_types');
   for (const st of subTypes) {
     db.executeSync(
       'INSERT INTO expense_sub_types (id, expense_type_id, name_en, name_bn) VALUES (?, ?, ?, ?)',
-      [st.id, st.expense_type_id, encodeURIComponent(st.name_en), encodeURIComponent(st.name_bn)]
+      [st.id, st.expense_type_id, st.name_en, st.name_bn]
     );
   }
+};
+
+// ─── Settings CRUD ──────────────────────────────────────────────────
+
+export const getSetting = (key: string): string | null => {
+  const result = db.executeSync('SELECT value FROM settings WHERE key = ?', [key]);
+  const rows = (result.rows as unknown as { value: string }[]) || [];
+  return rows.length > 0 ? rows[0].value : null;
+};
+
+export const setSetting = (key: string, value: string): void => {
+  db.executeSync(
+    'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
+    [key, value]
+  );
 };
