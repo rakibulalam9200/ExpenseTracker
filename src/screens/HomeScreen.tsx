@@ -10,6 +10,7 @@ import {
   useColorScheme,
   Platform,
   TextInput,
+  Animated,
 } from 'react-native';
 import {
   Moon,
@@ -18,14 +19,23 @@ import {
   Search,
   X,
   CalendarDays,
+  Calendar,
+  Wallet,
 } from 'lucide-react-native';
 import {
   useColorScheme as useNativeWindColorScheme,
   cssInterop,
 } from 'nativewind';
-import { startOfMonth, endOfMonth, format } from 'date-fns';
+import {
+  startOfMonth,
+  endOfMonth,
+  startOfDay,
+  endOfDay,
+  format,
+} from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native';
 import { HomeScreenProps } from '../navigation/types';
+import { useRef } from 'react';
 
 import Logo from '../assets/images/logo_rounded.svg';
 
@@ -38,6 +48,8 @@ import {
   getAllExpenses,
   getAllExpenseTypes,
   getAllExpenseSubTypes,
+  getSetting,
+  getCurrentMonthExpenses,
 } from '../db/database';
 import { Expense, ExpenseType, ExpenseSubType } from '../db/schema';
 import { ExpenseCard } from '../components/ExpenseCard';
@@ -51,16 +63,18 @@ import { useDebounce } from '../hooks/useDebounce';
 cssInterop(SafeAreaView, { className: 'style' });
 
 // Enable className support for Lucide icons
-[Moon, Settings, Sun, Search, X, CalendarDays].forEach(icon => {
-  cssInterop(icon, {
-    className: {
-      target: 'style',
-      nativeStyleToProp: {
-        color: true,
+[Moon, Settings, Sun, Search, X, CalendarDays, Calendar, Wallet].forEach(
+  icon => {
+    cssInterop(icon, {
+      className: {
+        target: 'style',
+        nativeStyleToProp: {
+          color: true,
+        },
       },
-    },
-  });
-});
+    });
+  },
+);
 
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
 
@@ -84,7 +98,29 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   const [filterEnd, setFilterEnd] = useState(endOfMonth(now));
   const [isFiltered, setIsFiltered] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [thisMonthOnly, setThisMonthOnly] = useState(false);
+  const [quickFilter, setQuickFilter] = useState<'all' | 'day' | 'month'>(
+    'all',
+  );
+
+  const [monthlyBudget, setMonthlyBudget] = useState(0);
+  const [budgetDesc, setBudgetDesc] = useState('');
+  const [currentMonthTotal, setCurrentMonthTotal] = useState(0);
+
+  const progressAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (monthlyBudget > 0) {
+      const targetProgress = Math.min(
+        (currentMonthTotal / monthlyBudget) * 100,
+        100,
+      );
+      Animated.timing(progressAnim, {
+        toValue: targetProgress,
+        duration: 1200,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [currentMonthTotal, monthlyBudget, progressAnim]);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
@@ -123,17 +159,36 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
       const subTypes = getAllExpenseSubTypes();
       setExpenseSubTypes(subTypes);
 
+      const savedBudget = getSetting('monthly_budget');
+      if (savedBudget) setMonthlyBudget(parseFloat(savedBudget));
+      else setMonthlyBudget(0);
+
+      const savedBudgetDesc = getSetting('monthly_budget_desc');
+      if (savedBudgetDesc) setBudgetDesc(savedBudgetDesc);
+      else setBudgetDesc('');
+
+      const currentMonthExps = getCurrentMonthExpenses();
+      const total = currentMonthExps.reduce((sum, e) => sum + e.amount, 0);
+      setCurrentMonthTotal(total);
+
       if (isFiltered) {
         // User applied custom date filter
-        const start = format(filterStart, 'yyyy-MM-dd');
-        const end = format(filterEnd, 'yyyy-MM-dd');
+        const start = format(new Date(filterStart), 'yyyy-MM-dd');
+        const end = format(new Date(filterEnd), 'yyyy-MM-dd');
         const currentExpenses = getExpensesByDateRange(start, end);
         setExpenses(currentExpenses);
-      } else if (thisMonthOnly) {
+      } else if (quickFilter === 'month') {
         // This Month toggle active
         const n = new Date();
         const start = format(startOfMonth(n), 'yyyy-MM-dd');
         const end = format(endOfMonth(n), 'yyyy-MM-dd');
+        const currentExpenses = getExpensesByDateRange(start, end);
+        setExpenses(currentExpenses);
+      } else if (quickFilter === 'day') {
+        // This Day toggle active
+        const n = new Date();
+        const start = format(startOfDay(n), 'yyyy-MM-dd');
+        const end = format(endOfDay(n), 'yyyy-MM-dd');
         const currentExpenses = getExpensesByDateRange(start, end);
         setExpenses(currentExpenses);
       } else {
@@ -144,7 +199,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
     } catch (e) {
       console.error('Failed to load data', e);
     }
-  }, [filterStart, filterEnd, isFiltered, thisMonthOnly]);
+  }, [filterStart, filterEnd, isFiltered, quickFilter]);
 
   useEffect(() => {
     try {
@@ -207,6 +262,97 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
 
   const renderHeader = () => (
     <View className="mb-4">
+      {monthlyBudget > 0 && (
+        <View className="mb-4 bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm">
+          <View className="flex-row items-center justify-between mb-2">
+            <View className="flex-row items-center flex-1 mr-2">
+              <View
+                className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${
+                  currentMonthTotal > monthlyBudget
+                    ? 'bg-red-50 dark:bg-red-900/20'
+                    : 'bg-primary-50 dark:bg-primary-900/20'
+                }`}
+              >
+                <Wallet
+                  size={28}
+                  color={
+                    currentMonthTotal > monthlyBudget
+                      ? '#ef4444'
+                      : isDark
+                      ? '#38bdf8'
+                      : '#0ea5e9'
+                  }
+                />
+              </View>
+              <View className="flex-1">
+                <Text
+                  className="text-sm font-extrabold text-slate-800 dark:text-slate-100"
+                  style={{ fontFamily }}
+                >
+                  {t('monthlyBudget')}
+                </Text>
+                <Text
+                  className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5"
+                  style={{ fontFamily }}
+                  numberOfLines={1}
+                >
+                  {currentMonthTotal > monthlyBudget ? (
+                    <Text className="text-red-500 font-bold">
+                      {t('budgetExceeded')}
+                    </Text>
+                  ) : (
+                    <Text className="text-emerald-500 dark:text-emerald-400 font-bold">
+                      {t('budgetLeft') || 'Remaining'}: ৳{' '}
+                      {monthlyBudget - currentMonthTotal}
+                    </Text>
+                  )}
+                  {budgetDesc ? ` • ${budgetDesc}` : ''}
+                </Text>
+              </View>
+            </View>
+
+            <View className="items-end justify-center">
+              <Text
+                className={`text-base font-black ${
+                  currentMonthTotal > monthlyBudget
+                    ? 'text-red-500'
+                    : 'text-primary-600 dark:text-primary-400'
+                }`}
+                style={{ fontFamily }}
+              >
+                ৳ {currentMonthTotal}
+              </Text>
+              <Text
+                className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 mt-0.5"
+                style={{ fontFamily }}
+              >
+                / ৳ {monthlyBudget} (
+                {Math.min(
+                  Math.round((currentMonthTotal / monthlyBudget) * 100),
+                  100,
+                )}
+                %)
+              </Text>
+            </View>
+          </View>
+
+          <View className="h-1.5 w-full bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden mt-1">
+            <Animated.View
+              className={`h-full rounded-full ${
+                currentMonthTotal > monthlyBudget
+                  ? 'bg-red-500'
+                  : 'bg-primary-500 dark:bg-primary-400'
+              }`}
+              style={{
+                width: progressAnim.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: ['0%', '100%'],
+                }),
+              }}
+            />
+          </View>
+        </View>
+      )}
       <View className="flex-row items-center justify-between mb-4">
         <ExpenseForm
           onSubmit={handleAddExpense}
@@ -244,8 +390,8 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
           <View className="flex-row items-center mt-3 ml-1 justify-end">
             <View className="bg-primary-100 dark:bg-primary-900/40 border border-primary-200 dark:border-primary-700 rounded-full px-4 py-2 flex-row items-center">
               <Text className="text-sm font-semibold text-primary-700 dark:text-primary-300 mr-2">
-                {`${format(filterStart, 'MMM dd')} - ${format(
-                  filterEnd,
+                {`${format(new Date(filterStart), 'MMM dd')} - ${format(
+                  new Date(filterEnd),
                   'MMM dd',
                 )}`}
               </Text>
@@ -266,29 +412,70 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         >
           {t('recentExpenses')}
         </Text>
-        <TouchableOpacity
-          onPress={() => setThisMonthOnly(prev => !prev)}
-          className={`flex-row items-center px-3 py-1.5 rounded-full border ${
-            thisMonthOnly
-              ? 'bg-primary-600 dark:bg-primary-500 border-primary-600 dark:border-primary-500'
-              : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
-          }`}
-        >
-          <CalendarDays
-            size={15}
-            color={thisMonthOnly ? '#ffffff' : isDark ? '#94a3b8' : '#64748b'}
-          />
-          <Text
-            className={`text-xs font-semibold ml-1.5 ${
-              thisMonthOnly
-                ? 'text-white'
-                : 'text-slate-600 dark:text-slate-400'
+        <View className="flex-row">
+          <TouchableOpacity
+            onPress={() =>
+              setQuickFilter(prev => (prev === 'day' ? 'all' : 'day'))
+            }
+            className={`flex-row items-center px-3 py-1.5 rounded-full border mr-2 ${
+              quickFilter === 'day'
+                ? 'bg-primary-600 dark:bg-primary-500 border-primary-600 dark:border-primary-500'
+                : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
             }`}
-            style={{ fontFamily }}
           >
-            {t('thisMonth')}
-          </Text>
-        </TouchableOpacity>
+            <Calendar
+              size={15}
+              color={
+                quickFilter === 'day'
+                  ? '#ffffff'
+                  : isDark
+                  ? '#94a3b8'
+                  : '#64748b'
+              }
+            />
+            <Text
+              className={`text-xs font-semibold ml-1.5 ${
+                quickFilter === 'day'
+                  ? 'text-white'
+                  : 'text-slate-600 dark:text-slate-400'
+              }`}
+              style={{ fontFamily }}
+            >
+              {t('thisDay')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              setQuickFilter(prev => (prev === 'month' ? 'all' : 'month'))
+            }
+            className={`flex-row items-center px-3 py-1.5 rounded-full border ${
+              quickFilter === 'month'
+                ? 'bg-primary-600 dark:bg-primary-500 border-primary-600 dark:border-primary-500'
+                : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+            }`}
+          >
+            <CalendarDays
+              size={15}
+              color={
+                quickFilter === 'month'
+                  ? '#ffffff'
+                  : isDark
+                  ? '#94a3b8'
+                  : '#64748b'
+              }
+            />
+            <Text
+              className={`text-xs font-semibold ml-1.5 ${
+                quickFilter === 'month'
+                  ? 'text-white'
+                  : 'text-slate-600 dark:text-slate-400'
+              }`}
+              style={{ fontFamily }}
+            >
+              {t('thisMonth')}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

@@ -302,7 +302,7 @@ export const getExpensesBySubTypeForDateRange = (startDate: string, endDate: str
 };
 
 export const getAllExpenses = (): Expense[] => {
-  const result = db.executeSync('SELECT * FROM expenses ORDER BY id ASC');
+  const result = db.executeSync('SELECT * FROM expenses ORDER BY date DESC, id DESC');
   const rows = (result.rows as unknown as Expense[]) || [];
 
   return rows.map(row => {
