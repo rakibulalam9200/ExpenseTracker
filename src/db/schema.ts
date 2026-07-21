@@ -20,3 +20,16 @@ export interface ExpenseSubType {
   name_en: string;
   name_bn: string;
 }
+
+export interface Loan {
+  id: number;
+  type: 'giving' | 'taking';
+  name: string;
+  amount: number;
+  description?: string;
+  target_date: string; // yyyy-MM-dd
+  status: 'active' | 'pending' | 'complete';
+  rating?: number | null;
+  transaction_way: 'cash' | 'bank';
+  bank_name?: string | null;
+}

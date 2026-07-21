@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   Bolt,
   Wallet,
+  Briefcase,
 } from 'lucide-react-native';
 import {
   useColorScheme as useNativeWindColorScheme,
@@ -47,7 +48,7 @@ import { BackupRestore } from '../components/BackupRestore';
 import { useI18n } from '../i18n/I18nContext';
 
 cssInterop(SafeAreaView, { className: 'style' });
-[Settings, X, PieChart, BarChart3, ArrowLeft, Bolt, Wallet].forEach(icon => {
+[Settings, X, PieChart, BarChart3, ArrowLeft, Bolt, Wallet, Briefcase].forEach(icon => {
   cssInterop(icon, {
     className: {
       target: 'style',
@@ -230,6 +231,22 @@ export function SettingScreen({ navigation, route }: SettingScreenProps) {
             {t('yearlyReport')}
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate('LoanManagement')}
+          className="bg-white dark:bg-slate-800 p-4 rounded-xl flex-row items-center border border-slate-100 dark:border-slate-700 mb-3"
+        >
+          <View className="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-lg mr-3">
+            <Briefcase color={isDark ? '#0ea5e9' : '#191970'} size={20} />
+          </View>
+          <Text
+            className="text-base text-slate-800 dark:text-slate-200 font-bold flex-1"
+            style={{ fontFamily }}
+          >
+            {t('loanManagement') || 'Loan Management'}
+          </Text>
+        </TouchableOpacity>
+
         <ManageTypes
           expenseTypes={expenseTypes}
           expenseSubTypes={expenseSubTypes}

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { open } from '@op-engineering/op-sqlite';
-import { Expense, ExpenseType, ExpenseSubType } from './schema';
+import { Expense, ExpenseType, ExpenseSubType, Loan } from './schema';
 import { startOfMonth, endOfMonth, format, parseISO } from 'date-fns';
 
 const db = open({
@@ -97,6 +97,21 @@ export const initDB = () => {
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
+    );
+  `);
+
+  db.executeSync(`
+    CREATE TABLE IF NOT EXISTS loans (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT NOT NULL,
+      name TEXT NOT NULL,
+      amount REAL NOT NULL,
+      description TEXT,
+      target_date TEXT NOT NULL,
+      status TEXT NOT NULL,
+      rating INTEGER,
+      transaction_way TEXT NOT NULL,
+      bank_name TEXT
     );
   `);
 
@@ -367,4 +382,73 @@ export const setSetting = (key: string, value: string): void => {
     'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
     [key, value]
   );
+};
+
+// ─── Loans CRUD ──────────────────────────────────────────────────
+
+export const addLoan = (loan: Omit<Loan, 'id'>) => {
+  const normalizedDate = format(
+    typeof loan.target_date === 'string' ? parseISO(loan.target_date) : loan.target_date,
+    'yyyy-MM-dd',
+  );
+  const safeName = encodeURIComponent(loan.name);
+  const safeDesc = loan.description ? encodeURIComponent(loan.description) : null;
+  const safeBankName = loan.bank_name ? encodeURIComponent(loan.bank_name) : null;
+
+  db.executeSync(
+    'INSERT INTO loans (type, name, amount, description, target_date, status, rating, transaction_way, bank_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [loan.type, safeName, loan.amount, safeDesc, normalizedDate, loan.status, loan.rating || null, loan.transaction_way, safeBankName]
+  );
+};
+
+export const updateLoan = (loan: Loan) => {
+  const normalizedDate = format(
+    typeof loan.target_date === 'string' ? parseISO(loan.target_date) : loan.target_date,
+    'yyyy-MM-dd',
+  );
+  const safeName = encodeURIComponent(loan.name);
+  const safeDesc = loan.description ? encodeURIComponent(loan.description) : null;
+  const safeBankName = loan.bank_name ? encodeURIComponent(loan.bank_name) : null;
+
+  db.executeSync(
+    'UPDATE loans SET type = ?, name = ?, amount = ?, description = ?, target_date = ?, status = ?, rating = ?, transaction_way = ?, bank_name = ? WHERE id = ?',
+    [loan.type, safeName, loan.amount, safeDesc, normalizedDate, loan.status, loan.rating || null, loan.transaction_way, safeBankName, loan.id]
+  );
+};
+
+export const deleteLoan = (id: number) => {
+  db.executeSync('DELETE FROM loans WHERE id = ?', [id]);
+};
+
+export const getAllLoans = (): Loan[] => {
+  const result = db.executeSync('SELECT * FROM loans ORDER BY target_date ASC, id DESC');
+  const rows = (result.rows as unknown as Loan[]) || [];
+
+  return rows.map(row => {
+    try {
+      return {
+        ...row,
+        name: row.name ? decodeURIComponent(row.name) : row.name,
+        description: row.description ? decodeURIComponent(row.description) : row.description,
+        bank_name: row.bank_name ? decodeURIComponent(row.bank_name) : row.bank_name,
+      };
+    } catch (e) {
+      return row;
+    }
+  });
+};
+
+export const getLoanSummary = () => {
+  const result = db.executeSync('SELECT type, SUM(amount) as total FROM loans GROUP BY type');
+  const rows = (result.rows as { type: string; total: number }[]) || [];
+  
+  let totalGiven = 0;
+  let totalTaken = 0;
+  
+  for (const row of rows) {
+    if (row.type === 'giving') totalGiven = row.total;
+    if (row.type === 'taking') totalTaken = row.total;
+  }
+  
+  return { totalGiven, totalTaken };
 };

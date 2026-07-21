@@ -7,6 +7,7 @@ import { RootStackParamList } from './src/navigation/types';
 
 import { HomeScreen } from './src/screens/HomeScreen';
 import { SettingScreen } from './src/screens/SettingScreen';
+import { LoanManagementScreen } from './src/screens/LoanManagementScreen';
 import { I18nProvider } from './src/i18n/I18nContext';
 import { initDB } from './src/db/database';
 
@@ -25,6 +26,7 @@ export default function App() {
         >
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Settings" component={SettingScreen} />
+          <Stack.Screen name="LoanManagement" component={LoanManagementScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </I18nProvider>
