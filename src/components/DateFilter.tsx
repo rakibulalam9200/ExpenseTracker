@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, { useState } from 'react';
 import {
   View,
@@ -6,10 +7,15 @@ import {
   Modal,
   Platform,
   useColorScheme,
-  ScrollView,
 } from 'react-native';
 import DatePicker from 'react-native-date-picker';
-import { format, startOfMonth, endOfMonth, setYear, setMonth } from 'date-fns';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfDay,
+  endOfDay,
+} from 'date-fns';
 import {
   Filter,
   X,
@@ -18,10 +24,7 @@ import {
   ChevronRight,
 } from 'lucide-react-native';
 import { useI18n } from '../i18n/I18nContext';
-import {
-  useColorScheme as useNativeWindColorScheme,
-  cssInterop,
-} from 'nativewind';
+import { useColorScheme as useNativeWindColorScheme } from 'nativewind';
 
 // Android-safe font that supports Bangla/Bengali script
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
@@ -50,6 +53,9 @@ export function DateFilter({
   const [isOpen, setIsOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'month' | 'custom'>('month');
+  const [quickSelect, setQuickSelect] = useState<'today' | 'thisMonth' | null>(
+    null,
+  );
 
   // Custom range state
   const [tempStart, setTempStart] = useState(startDate);
@@ -65,6 +71,7 @@ export function DateFilter({
     setTempEnd(endDate);
     setSelectedYear(startDate.getFullYear());
     setSelectedMonth(startDate.getMonth());
+    setQuickSelect(null);
     setIsOpen(true);
   };
 
@@ -74,6 +81,24 @@ export function DateFilter({
       onApply(startOfMonth(date), endOfMonth(date));
     } else {
       onApply(tempStart, tempEnd);
+    }
+    setIsOpen(false);
+  };
+
+  const handleQuickSelect = (option: 'today' | 'thisMonth') => {
+    if (quickSelect === option) {
+      // Deselect — clear filter
+      setQuickSelect(null);
+      onClear();
+      setIsOpen(false);
+      return;
+    }
+    setQuickSelect(option);
+    const now = new Date();
+    if (option === 'today') {
+      onApply(startOfDay(now), endOfDay(now));
+    } else {
+      onApply(startOfMonth(now), endOfMonth(now));
     }
     setIsOpen(false);
   };
@@ -96,9 +121,32 @@ export function DateFilter({
   return (
     <>
       <View className="flex-row items-center">
-        <TouchableOpacity className="p-2" onPress={handleOpen}>
-          <Filter size={24} color={isDark ? '#6366f1' : '#191970'} />
-        </TouchableOpacity>
+        {isFiltered ? (
+          <View className="flex-row items-center">
+            <TouchableOpacity onPress={handleOpen}>
+              <Text
+                className="text-base text-slate-500 dark:text-slate-400 mr-2"
+                style={{ fontFamily }}
+              >
+                {format(startDate, 'MMM dd')} - {format(endDate, 'MMM dd')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                padding: 6,
+                borderRadius: 999,
+                backgroundColor: '#fecaca',
+              }}
+              onPress={onClear}
+            >
+              <X size={18} color="#ef4444" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity className="p-2" onPress={handleOpen}>
+            <Filter size={24} color={isDark ? '#6366f1' : '#191970'} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <Modal
@@ -126,6 +174,48 @@ export function DateFilter({
               </Text>
             </View>
 
+            {/* Quick Select: Today / This Month */}
+            <View className="flex-row mb-4 gap-3">
+              <TouchableOpacity
+                className={`flex-1 py-3 items-center rounded-xl border ${
+                  quickSelect === 'today'
+                    ? 'bg-primary-600 border-primary-600'
+                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                }`}
+                onPress={() => handleQuickSelect('today')}
+              >
+                <Text
+                  className={`font-bold ${
+                    quickSelect === 'today'
+                      ? 'text-white'
+                      : 'text-slate-700 dark:text-slate-300'
+                  }`}
+                  style={{ fontFamily }}
+                >
+                  {t('today') || 'Today'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`flex-1 py-3 items-center rounded-xl border ${
+                  quickSelect === 'thisMonth'
+                    ? 'bg-primary-600 border-primary-600'
+                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                }`}
+                onPress={() => handleQuickSelect('thisMonth')}
+              >
+                <Text
+                  className={`font-bold ${
+                    quickSelect === 'thisMonth'
+                      ? 'text-white'
+                      : 'text-slate-700 dark:text-slate-300'
+                  }`}
+                  style={{ fontFamily }}
+                >
+                  {t('thisMonth') || 'This Month'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Tabs */}
             <View className="flex-row bg-slate-100 dark:bg-slate-800 rounded-xl p-1 mb-6">
               <TouchableOpacity
@@ -134,7 +224,10 @@ export function DateFilter({
                     ? 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600'
                     : ''
                 }`}
-                onPress={() => setActiveTab('month')}
+                onPress={() => {
+                  setActiveTab('month');
+                  setQuickSelect(null);
+                }}
               >
                 <Text
                   className={`font-semibold ${
@@ -153,7 +246,10 @@ export function DateFilter({
                     ? 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600'
                     : ''
                 }`}
-                onPress={() => setActiveTab('custom')}
+                onPress={() => {
+                  setActiveTab('custom');
+                  setQuickSelect(null);
+                }}
               >
                 <Text
                   className={`font-semibold ${

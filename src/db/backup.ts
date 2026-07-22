@@ -1,5 +1,6 @@
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { Platform } from 'react-native';
+import Share from 'react-native-share';
 import { pick, types, isErrorWithCode, errorCodes } from '@react-native-documents/picker';
 import {
   getAllExpenses,
@@ -10,6 +11,39 @@ import {
   importExpenseTypesBatch,
   importExpenseSubTypesBatch,
 } from './database';
+
+export const shareData = async (): Promise<boolean> => {
+  try {
+    const expenses = getAllExpenses();
+    const expenseTypes = getAllExpenseTypes();
+    const expenseSubTypes = getAllExpenseSubTypes();
+
+    const backupData = {
+      version: 2,
+      timestamp: new Date().toISOString(),
+      expenses,
+      types: expenseTypes,
+      subTypes: expenseSubTypes,
+    };
+
+    const jsonString = JSON.stringify(backupData, null, 2);
+    const fileName = `ExpenseTracker_Backup_${new Date().getTime()}.json`;
+    const cachePath = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${fileName}`;
+    
+    await ReactNativeBlobUtil.fs.writeFile(cachePath, jsonString, 'utf8');
+
+    await Share.open({
+      title: 'Share Backup',
+      url: `file://${cachePath}`,
+      type: 'application/json',
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Share failed:', error);
+    return false;
+  }
+};
 
 export const exportData = async (): Promise<string | null> => {
   try {

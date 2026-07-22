@@ -6,6 +6,7 @@ import {
   useColorScheme,
   Platform,
   Modal,
+  ScrollView,
 } from 'react-native';
 import {
   Settings,
@@ -16,6 +17,9 @@ import {
   Bolt,
   Wallet,
   Briefcase,
+  Sun,
+  Moon,
+  Languages,
 } from 'lucide-react-native';
 import {
   useColorScheme as useNativeWindColorScheme,
@@ -48,7 +52,19 @@ import { BackupRestore } from '../components/BackupRestore';
 import { useI18n } from '../i18n/I18nContext';
 
 cssInterop(SafeAreaView, { className: 'style' });
-[Settings, X, PieChart, BarChart3, ArrowLeft, Bolt, Wallet, Briefcase].forEach(icon => {
+[
+  Settings,
+  X,
+  PieChart,
+  BarChart3,
+  ArrowLeft,
+  Bolt,
+  Wallet,
+  Briefcase,
+  Sun,
+  Moon,
+  Languages,
+].forEach(icon => {
   cssInterop(icon, {
     className: {
       target: 'style',
@@ -62,12 +78,17 @@ cssInterop(SafeAreaView, { className: 'style' });
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
 
 export function SettingScreen({ navigation, route }: SettingScreenProps) {
-  const { colorScheme } = useNativeWindColorScheme();
+  const { colorScheme, setColorScheme } = useNativeWindColorScheme();
   const systemColorScheme = useColorScheme();
   const isDark =
     colorScheme === 'dark' ||
     ((colorScheme as any) === 'system' && systemColorScheme === 'dark');
-  const { t } = useI18n();
+
+  const toggleColorScheme = () => {
+    setColorScheme(isDark ? 'light' : 'dark');
+  };
+
+  const { t, lang, toggleLanguage } = useI18n();
 
   const { filterStart, filterEnd } = route.params;
 
@@ -170,7 +191,7 @@ export function SettingScreen({ navigation, route }: SettingScreenProps) {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-950">
+    <SafeAreaView className="flex-1 bg-gray-100 dark:bg-slate-950">
       <View className="flex-row items-center px-4 py-4 z-10 border-b border-slate-200 dark:border-slate-800">
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -186,99 +207,141 @@ export function SettingScreen({ navigation, route }: SettingScreenProps) {
         </Text>
       </View>
 
-      <View className="flex-1 px-4 pt-6">
-        <TouchableOpacity
-          onPress={handleOpenBudgetModal}
-          className="bg-white dark:bg-slate-800 p-4 rounded-xl flex-row items-center border border-slate-100 dark:border-slate-700 mb-3"
-        >
-          <View className="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-lg mr-3">
-            <Wallet color={isDark ? '#0ea5e9' : '#191970'} size={20} />
-          </View>
-          <Text
-            className="text-base text-primary-700 dark:text-slate-200 font-bold flex-1"
-            style={{ fontFamily }}
+      <ScrollView
+        className="flex-1 px-4 pt-6"
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="flex-row flex-wrap justify-between">
+          <TouchableOpacity
+            onPress={toggleLanguage}
+            className="bg-white dark:bg-slate-800 p-3 rounded-2xl flex-col items-center justify-center border border-slate-100 dark:border-slate-700 mb-3 w-[48%]"
           >
-            {t('monthlyBudget')}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => setIsChartModalOpen(true)}
-          className="bg-white dark:bg-slate-800 p-4 rounded-xl flex-row items-center border border-slate-100 dark:border-slate-700 mb-3"
-        >
-          <View className="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-lg mr-3">
-            <PieChart color={isDark ? '#0ea5e9' : '#191970'} size={20} />
-          </View>
-          <Text
-            className="text-base text-primary-700 dark:text-slate-200 font-bold flex-1"
-            style={{ fontFamily }}
-          >
-            {t('expenseChart')}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => setIsYearlyReportModalOpen(true)}
-          className="bg-white dark:bg-slate-800 p-4 rounded-xl flex-row items-center border border-slate-100 dark:border-slate-700 mb-3"
-        >
-          <View className="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-lg mr-3">
-            <BarChart3 color={isDark ? '#0ea5e9' : '#191970'} size={20} />
-          </View>
-          <Text
-            className="text-base text-slate-800 dark:text-slate-200 font-bold flex-1"
-            style={{ fontFamily }}
-          >
-            {t('yearlyReport')}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => navigation.navigate('LoanManagement')}
-          className="bg-white dark:bg-slate-800 p-4 rounded-xl flex-row items-center border border-slate-100 dark:border-slate-700 mb-3"
-        >
-          <View className="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-lg mr-3">
-            <Briefcase color={isDark ? '#0ea5e9' : '#191970'} size={20} />
-          </View>
-          <Text
-            className="text-base text-slate-800 dark:text-slate-200 font-bold flex-1"
-            style={{ fontFamily }}
-          >
-            {t('loanManagement') || 'Loan Management'}
-          </Text>
-        </TouchableOpacity>
-
-        <ManageTypes
-          expenseTypes={expenseTypes}
-          expenseSubTypes={expenseSubTypes}
-          onAdd={handleAddType}
-          onUpdate={handleUpdateType}
-          onDelete={handleDeleteType}
-          onAddSubType={handleAddSubType}
-          onUpdateSubType={handleUpdateSubType}
-          onDeleteSubType={handleDeleteSubType}
-          renderTrigger={onPress => (
-            <TouchableOpacity
-              onPress={onPress}
-              className="bg-white dark:bg-slate-800 p-4 rounded-xl flex-row items-center border border-slate-100 dark:border-slate-700 mb-3"
+            <View className="bg-primary-100 dark:bg-primary-900/50 p-2.5 rounded-full mb-2">
+              <Languages color={isDark ? '#0ea5e9' : '#191970'} size={20} />
+            </View>
+            <Text
+              className="text-xs text-center text-primary-700 dark:text-slate-200 font-bold"
+              style={{ fontFamily }}
             >
-              <View className="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-lg mr-3">
-                <Bolt color={isDark ? '#0ea5e9' : '#191970'} size={20} />
-              </View>
-              <Text
-                className="text-base text-primary-700 dark:text-slate-200 font-bold flex-1"
-                style={{ fontFamily }}
-              >
-                {t('manageTypes')}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
+              {lang === 'en' ? 'বাংলা ভাষা' : 'English'}
+            </Text>
+          </TouchableOpacity>
 
-        <BackupRestore
-          onRestoreComplete={() => loadData()}
-          onActionComplete={() => {}}
-        />
-      </View>
+          <TouchableOpacity
+            onPress={toggleColorScheme}
+            className="bg-white dark:bg-slate-800 p-3 rounded-2xl flex-col items-center justify-center border border-slate-100 dark:border-slate-700 mb-3 w-[48%]"
+          >
+            <View className="bg-primary-100 dark:bg-primary-900/50 p-2.5 rounded-full mb-2">
+              {isDark ? (
+                <Sun color="#fbbf24" size={20} />
+              ) : (
+                <Moon color="#191970" size={20} />
+              )}
+            </View>
+            <Text
+              className="text-xs text-center text-primary-700 dark:text-slate-200 font-bold"
+              style={{ fontFamily }}
+            >
+              {isDark
+                ? t('lightMode') || 'Light Mode'
+                : t('darkMode') || 'Dark Mode'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleOpenBudgetModal}
+            className="bg-white dark:bg-slate-800 p-3 rounded-2xl flex-col items-center justify-center border border-slate-100 dark:border-slate-700 mb-3 w-[48%]"
+          >
+            <View className="bg-primary-100 dark:bg-primary-900/50 p-2.5 rounded-full mb-2">
+              <Wallet color={isDark ? '#0ea5e9' : '#191970'} size={20} />
+            </View>
+            <Text
+              className="text-xs text-center text-primary-700 dark:text-slate-200 font-bold"
+              style={{ fontFamily }}
+            >
+              {t('monthlyBudget')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setIsChartModalOpen(true)}
+            className="bg-white dark:bg-slate-800 p-3 rounded-2xl flex-col items-center justify-center border border-slate-100 dark:border-slate-700 mb-3 w-[48%]"
+          >
+            <View className="bg-primary-100 dark:bg-primary-900/50 p-2.5 rounded-full mb-2">
+              <PieChart color={isDark ? '#0ea5e9' : '#191970'} size={20} />
+            </View>
+            <Text
+              className="text-xs text-center text-primary-700 dark:text-slate-200 font-bold"
+              style={{ fontFamily }}
+            >
+              {t('expenseChart')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setIsYearlyReportModalOpen(true)}
+            className="bg-white dark:bg-slate-800 p-3 rounded-2xl flex-col items-center justify-center border border-slate-100 dark:border-slate-700 mb-3 w-[48%]"
+          >
+            <View className="bg-primary-100 dark:bg-primary-900/50 p-2.5 rounded-full mb-2">
+              <BarChart3 color={isDark ? '#0ea5e9' : '#191970'} size={20} />
+            </View>
+            <Text
+              className="text-xs text-center text-slate-800 dark:text-slate-200 font-bold"
+              style={{ fontFamily }}
+            >
+              {t('yearlyReport')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('LoanManagement')}
+            className="bg-white dark:bg-slate-800 p-3 rounded-2xl flex-col items-center justify-center border border-slate-100 dark:border-slate-700 mb-3 w-[48%]"
+          >
+            <View className="bg-primary-100 dark:bg-primary-900/50 p-2.5 rounded-full mb-2">
+              <Briefcase color={isDark ? '#0ea5e9' : '#191970'} size={20} />
+            </View>
+            <Text
+              className="text-xs text-center text-slate-800 dark:text-slate-200 font-bold"
+              style={{ fontFamily }}
+            >
+              {t('loanManagement') || 'Loan Management'}
+            </Text>
+          </TouchableOpacity>
+
+          <ManageTypes
+            expenseTypes={expenseTypes}
+            expenseSubTypes={expenseSubTypes}
+            onAdd={handleAddType}
+            onUpdate={handleUpdateType}
+            onDelete={handleDeleteType}
+            onAddSubType={handleAddSubType}
+            onUpdateSubType={handleUpdateSubType}
+            onDeleteSubType={handleDeleteSubType}
+            renderTrigger={onPress => (
+              <TouchableOpacity
+                onPress={onPress}
+                className="bg-white dark:bg-slate-800 p-3 rounded-2xl flex-col items-center justify-center border border-slate-100 dark:border-slate-700 mb-3 w-[48%]"
+              >
+                <View className="bg-primary-100 dark:bg-primary-900/50 p-2.5 rounded-full mb-2">
+                  <Bolt color={isDark ? '#0ea5e9' : '#191970'} size={20} />
+                </View>
+                <Text
+                  className="text-xs text-center text-primary-700 dark:text-slate-200 font-bold"
+                  style={{ fontFamily }}
+                >
+                  {t('manageTypes')}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+
+          <BackupRestore
+            onRestoreComplete={() => loadData()}
+            onActionComplete={() => {}}
+          />
+        </View>
+      </ScrollView>
 
       {/* Budget Modal */}
       <Modal

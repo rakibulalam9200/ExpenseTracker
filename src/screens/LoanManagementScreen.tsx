@@ -84,19 +84,31 @@ export function LoanManagementScreen({
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-950">
-      <View className="flex-row items-center px-4 py-4 z-10 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+      <View className="flex-row items-center px-4 py-4 z-10 bg-transparent shadow-sm justify-between">
+        <View className="flex-row items-center">
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            className="p-2 mr-3"
+          >
+            <ArrowLeft color={isDark ? '#fff' : '#0f172a'} size={24} />
+          </TouchableOpacity>
+          <Text
+            className="text-2xl font-bold text-slate-900 dark:text-white"
+            style={{ fontFamily }}
+          >
+            {t('loanManagement')}
+          </Text>
+        </View>
+
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          className="p-2 mr-3 bg-slate-100 dark:bg-slate-800 rounded-full"
+          onPress={() => {
+            setEditingLoan(null);
+            setIsFormVisible(true);
+          }}
+          className="items-center justify-center shadow-lg p-1 rounded-full"
         >
-          <ArrowLeft color={isDark ? '#fff' : '#0f172a'} size={20} />
+          <Plus color={isDark ? '#ffffff' : '#0f172a'} size={28} />
         </TouchableOpacity>
-        <Text
-          className="text-xl font-bold text-slate-900 dark:text-white"
-          style={{ fontFamily }}
-        >
-          {t('loanManagement')}
-        </Text>
       </View>
 
       <View className="flex-row px-4 py-4 gap-3">
@@ -134,7 +146,7 @@ export function LoanManagementScreen({
       <FlatList
         data={loans}
         keyExtractor={item => item.id.toString()}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 80 }}
         renderItem={({ item }) => (
           <LoanCard
             loan={item}
@@ -156,16 +168,6 @@ export function LoanManagementScreen({
           </View>
         }
       />
-
-      <TouchableOpacity
-        onPress={() => {
-          setEditingLoan(null);
-          setIsFormVisible(true);
-        }}
-        className="absolute bottom-6 right-6 w-14 h-14 bg-primary-600 rounded-full items-center justify-center shadow-lg"
-      >
-        <Plus color="#fff" size={24} />
-      </TouchableOpacity>
 
       <LoanForm
         visible={isFormVisible}

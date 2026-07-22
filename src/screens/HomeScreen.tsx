@@ -21,6 +21,7 @@ import {
   CalendarDays,
   Calendar,
   Wallet,
+  Plus,
 } from 'lucide-react-native';
 import {
   useColorScheme as useNativeWindColorScheme,
@@ -63,7 +64,7 @@ import { useDebounce } from '../hooks/useDebounce';
 cssInterop(SafeAreaView, { className: 'style' });
 
 // Enable className support for Lucide icons
-[Moon, Settings, Sun, Search, X, CalendarDays, Calendar, Wallet].forEach(
+[Moon, Settings, Sun, Search, X, CalendarDays, Calendar, Wallet, Plus].forEach(
   icon => {
     cssInterop(icon, {
       className: {
@@ -89,6 +90,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isDBReady, setIsDBReady] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [isExpenseFormVisible, setIsExpenseFormVisible] = useState(false);
   const [expenseTypes, setExpenseTypes] = useState<ExpenseType[]>([]);
   const [expenseSubTypes, setExpenseSubTypes] = useState<ExpenseSubType[]>([]);
 
@@ -261,7 +263,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   };
 
   const renderHeader = () => (
-    <View className="mb-4">
+    <View className="">
       {monthlyBudget > 0 && (
         <View className="mb-4 bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm">
           <View className="flex-row items-center justify-between mb-2">
@@ -353,18 +355,8 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
           </View>
         </View>
       )}
-      <View className="flex-row items-center justify-between mb-4">
-        <ExpenseForm
-          onSubmit={handleAddExpense}
-          onUpdate={handleUpdateExpense}
-          editingExpense={editingExpense}
-          onCancelEdit={() => setEditingExpense(null)}
-          expenseTypes={expenseTypes}
-          expenseSubTypes={expenseSubTypes}
-        />
-      </View>
 
-      <View className="flex-col mb-4">
+      <View className="flex-col">
         <View className="flex-row justify-between items-center">
           <View className="flex-1 flex-row items-center bg-white dark:bg-slate-800 border border-slate-200 py-2 dark:border-slate-700 rounded-full px-4 mr-3">
             <Search size={18} color="#94a3b8" />
@@ -377,33 +369,25 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
               style={{ fontFamily }}
             />
           </View>
-          <DateFilter
-            startDate={filterStart}
-            endDate={filterEnd}
-            onApply={handleApplyFilter}
-            onClear={handleClearFilter}
-            isFiltered={isFiltered}
-          />
+          <TouchableOpacity
+            className="bg-primary-600 active:bg-primary-700 flex-row items-center justify-center p-2 rounded-full shadow-md"
+            onPress={() => setIsExpenseFormVisible(true)}
+          >
+            <Plus color="white" size={24} />
+          </TouchableOpacity>
         </View>
-
-        {isFiltered && (
-          <View className="flex-row items-center mt-3 ml-1 justify-end">
-            <View className="bg-primary-100 dark:bg-primary-900/40 border border-primary-200 dark:border-primary-700 rounded-full px-4 py-2 flex-row items-center">
-              <Text className="text-sm font-semibold text-primary-700 dark:text-primary-300 mr-2">
-                {`${format(new Date(filterStart), 'MMM dd')} - ${format(
-                  new Date(filterEnd),
-                  'MMM dd',
-                )}`}
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={handleClearFilter}
-              className="p-1 rounded-full ml-2 bg-primary-600 dark:bg-primary-300"
-            >
-              <X size={20} color="#ffffff" />
-            </TouchableOpacity>
-          </View>
-        )}
+      </View>
+      <View className="flex-row items-center justify-between">
+        <ExpenseForm
+          isVisible={isExpenseFormVisible}
+          onClose={() => setIsExpenseFormVisible(false)}
+          onSubmit={handleAddExpense}
+          onUpdate={handleUpdateExpense}
+          editingExpense={editingExpense}
+          onCancelEdit={() => setEditingExpense(null)}
+          expenseTypes={expenseTypes}
+          expenseSubTypes={expenseSubTypes}
+        />
       </View>
       <View className="flex-row items-center justify-between mt-4 mb-2">
         <Text
@@ -412,7 +396,15 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         >
           {t('recentExpenses')}
         </Text>
-        <View className="flex-row">
+
+        <DateFilter
+          startDate={filterStart}
+          endDate={filterEnd}
+          onApply={handleApplyFilter}
+          onClear={handleClearFilter}
+          isFiltered={isFiltered}
+        />
+        {/* <View className="flex-row">
           <TouchableOpacity
             onPress={() =>
               setQuickFilter(prev => (prev === 'day' ? 'all' : 'day'))
@@ -475,16 +467,16 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
               {t('thisMonth')}
             </Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-950">
+    <SafeAreaView className="flex-1 bg-gary-100 dark:bg-slate-950">
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
-        backgroundColor={isDark ? '#020617' : '#f8fafc'}
+        backgroundColor={isDark ? '#020617' : '#F3F4F6'}
       />
 
       <View className="flex-row justify-between items-center px-4 py-2 z-10">
@@ -508,29 +500,6 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
 
         <View className="flex-row items-center">
           <TouchableOpacity
-            onPress={toggleLanguage}
-            className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full mr-2"
-          >
-            <Text
-              className="text-sm font-bold text-primary-600 dark:text-primary-400"
-              style={{ fontFamily }}
-            >
-              {lang === 'en' ? 'বাং' : 'EN'}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={toggleColorScheme}
-            className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full mr-2"
-          >
-            {isDark ? (
-              <Sun color="#fbbf24" size={20} />
-            ) : (
-              <Moon color="#191970" size={20} />
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
             onPress={() =>
               navigation.navigate('Settings', {
                 filterStart: filterStart.toISOString(),
@@ -544,7 +513,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         </View>
       </View>
 
-      <View className="flex-1 px-4 pt-6">
+      <View className="flex-1 px-4 pt-2">
         {!isDBReady ? (
           <SkeletonLoader isDark={isDark} />
         ) : (
@@ -556,7 +525,10 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
                 expense={item}
                 expenseTypes={expenseTypes}
                 expenseSubTypes={expenseSubTypes}
-                onEdit={setEditingExpense}
+                onEdit={expense => {
+                  setEditingExpense(expense);
+                  setIsExpenseFormVisible(true);
+                }}
                 onDelete={handleDeleteExpense}
               />
             )}

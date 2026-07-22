@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
@@ -27,6 +28,8 @@ import { Expense, ExpenseType, ExpenseSubType } from '../db/schema';
 const fontFamily = Platform.OS === 'android' ? 'sans-serif' : undefined;
 
 interface ExpenseFormProps {
+  isVisible: boolean;
+  onClose: () => void;
   onSubmit: (expense: {
     title: string;
     amount: number;
@@ -43,6 +46,8 @@ interface ExpenseFormProps {
 }
 
 export function ExpenseForm({
+  isVisible,
+  onClose,
   onSubmit,
   onUpdate,
   editingExpense,
@@ -51,7 +56,6 @@ export function ExpenseForm({
   expenseSubTypes,
 }: ExpenseFormProps) {
   const { lang, t } = useI18n();
-  const [isOpen, setIsOpen] = useState(false);
 
   const defaultTypeId =
     expenseTypes.length > 0 ? expenseTypes[0].id.toString() : '';
@@ -84,7 +88,6 @@ export function ExpenseForm({
       setType(editingExpense.type);
       setSubType(editingExpense.sub_type || '');
       setDescription(editingExpense.description || '');
-      setIsOpen(true);
     }
   }, [editingExpense]);
 
@@ -112,11 +115,11 @@ export function ExpenseForm({
   };
 
   const handleClose = () => {
-    setIsOpen(false);
     resetForm();
     if (onCancelEdit) {
       onCancelEdit();
     }
+    onClose();
   };
 
   const handleSubmit = () => {
@@ -172,20 +175,10 @@ export function ExpenseForm({
 
   return (
     <>
-      <TouchableOpacity
-        className="bg-primary-600 active:bg-primary-700 flex-row items-center justify-center py-3.5 px-6 rounded-full shadow-md flex-1 mr-3"
-        onPress={() => setIsOpen(true)}
-      >
-        <Plus color="white" size={20} />
-        <Text className="text-white font-bold text-base ml-2">
-          {t('addExpense')}
-        </Text>
-      </TouchableOpacity>
-
       <Modal
-        visible={isOpen}
+        visible={isVisible}
         animationType="slide"
-        presentationStyle="pageSheet"
+        // presentationStyle="pageSheet"
         onRequestClose={handleClose}
       >
         <KeyboardAvoidingView
@@ -305,7 +298,7 @@ export function ExpenseForm({
                   {t('descriptionOptional')}
                 </Text>
                 <TextInput
-                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 text-base text-slate-900 dark:text-white"
+                  className=" bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 text-base text-slate-900 dark:text-white"
                   placeholder={t('descriptionPlaceholder')}
                   placeholderTextColor="#94a3b8"
                   multiline
@@ -313,7 +306,7 @@ export function ExpenseForm({
                   textAlignVertical="top"
                   value={description}
                   onChangeText={setDescription}
-                  style={{ fontFamily }}
+                  style={{ fontFamily, minHeight: 70 }}
                 />
               </View>
             </ScrollView>
