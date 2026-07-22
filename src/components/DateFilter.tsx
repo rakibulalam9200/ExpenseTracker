@@ -133,17 +133,17 @@ export function DateFilter({
             </TouchableOpacity>
             <TouchableOpacity
               style={{
-                padding: 6,
+                padding: 1,
                 borderRadius: 999,
-                backgroundColor: '#fecaca',
+                backgroundColor: isDark ? '#e2e8f0' : '#fecaca',
               }}
               onPress={onClear}
             >
-              <X size={18} color="#ef4444" />
+              <X size={24} color={isDark ? '#64748b' : '#E53935'} />
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity className="p-2" onPress={handleOpen}>
+          <TouchableOpacity className="p-1" onPress={handleOpen}>
             <Filter size={24} color={isDark ? '#6366f1' : '#191970'} />
           </TouchableOpacity>
         )}

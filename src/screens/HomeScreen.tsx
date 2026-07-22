@@ -479,6 +479,12 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         backgroundColor={isDark ? '#020617' : '#F3F4F6'}
       />
 
+      {/* <TouchableOpacity
+        className="absolute bottom-6 right-5 z-10 bg-primary-600 active:bg-primary-700 flex-row items-center justify-center p-4 rounded-full shadow-md"
+        onPress={() => setIsExpenseFormVisible(true)}
+      >
+        <Plus color="white" size={24} />
+      </TouchableOpacity> */}
       <View className="flex-row justify-between items-center px-4 py-2 z-10">
         <View className="flex-row items-center justify-center">
           <Logo width={50} height={50} />
